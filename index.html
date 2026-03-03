@@ -2,445 +2,477 @@
 <html lang="ja">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>人だまりルートプランナー</title>
-<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700&family=DM+Mono:wght@500&display=swap" rel="stylesheet">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<title>人だまりマップ</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <style>
-  :root {
-    --green: #2d6a4f;
-    --green2: #52b788;
-    --light: #d8f3dc;
-    --bg: #f4f3ef;
-    --white: #ffffff;
-    --text: #1a1a1a;
-    --text2: #666;
-    --border: #e0ddd6;
-    --orange: #e76f51;
-    --radius: 10px;
-  }
-  * { box-sizing: border-box; margin: 0; padding: 0; }
-  body { font-family: 'Noto Sans JP', sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; }
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
-  header {
-    background: var(--green);
-    color: white;
-    padding: 14px 20px;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-  }
-  header h1 { font-size: 1rem; font-weight: 700; }
-  header .sub { font-size: 0.72rem; opacity: 0.75; margin-top: 2px; }
+body {
+  font-family: 'Noto Sans JP', sans-serif;
+  background: #f5f5f5;
+  color: #222;
+  min-height: 100vh;
+  -webkit-text-size-adjust: 100%;
+}
 
-  .container { max-width: 600px; margin: 0 auto; padding: 16px; }
+.app { max-width: 480px; margin: 0 auto; }
 
-  /* ステータスカード */
-  .status-card {
-    background: var(--white);
-    border-radius: var(--radius);
-    padding: 16px;
-    margin-bottom: 16px;
-    border: 1.5px solid var(--border);
-    display: flex;
-    align-items: center;
-    gap: 12px;
-  }
-  .status-icon { font-size: 1.6rem; flex-shrink: 0; }
-  .status-text { flex: 1; }
-  .status-text .title { font-size: 0.85rem; font-weight: 700; }
-  .status-text .desc { font-size: 0.75rem; color: var(--text2); margin-top: 2px; }
+.header {
+  background: #222;
+  color: #fff;
+  padding: 16px;
+  position: sticky;
+  top: 0;
+  z-index: 1000;
+}
+.header h1 { font-size: 16px; font-weight: 700; }
 
-  /* ボタン */
-  .btn {
-    width: 100%;
-    padding: 13px;
-    border: none;
-    border-radius: var(--radius);
-    font-size: 0.9rem;
-    font-weight: 700;
-    font-family: inherit;
-    cursor: pointer;
-    transition: all 0.2s;
-    margin-bottom: 10px;
-  }
-  .btn-primary { background: var(--green); color: white; }
-  .btn-primary:hover { background: #1e4d38; }
-  .btn-primary:disabled { opacity: 0.4; cursor: not-allowed; }
-  .btn-orange { background: var(--orange); color: white; }
-  .btn-orange:hover { background: #c85a3e; }
-  .btn-orange:disabled { opacity: 0.4; cursor: not-allowed; }
+.body { padding: 12px; }
 
-  /* 件数フィルター */
-  .filter-row {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    margin-bottom: 14px;
-    background: var(--white);
-    border-radius: var(--radius);
-    padding: 12px 16px;
-    border: 1.5px solid var(--border);
-  }
-  .filter-row label { font-size: 0.82rem; font-weight: 700; color: var(--green); }
-  .filter-row input[type=range] { flex: 1; accent-color: var(--green); }
-  .filter-row .count-val {
-    font-family: 'DM Mono', monospace;
-    font-size: 0.9rem;
-    font-weight: 700;
-    color: var(--green);
-    min-width: 30px;
-    text-align: right;
-  }
+#map {
+  width: 100%;
+  height: 300px;
+  border-radius: 10px;
+  margin-bottom: 10px;
+  z-index: 1;
+}
 
-  /* スポットリスト */
-  .section-title {
-    font-size: 0.72rem;
-    font-weight: 700;
-    color: var(--green);
-    letter-spacing: 0.08em;
-    text-transform: uppercase;
-    margin-bottom: 8px;
-    display: flex;
-    align-items: center;
-    gap: 8px;
-  }
-  .badge {
-    background: var(--light);
-    color: var(--green);
-    font-size: 0.68rem;
-    padding: 2px 7px;
-    border-radius: 99px;
-    font-weight: 700;
-  }
+.btn {
+  display: block;
+  width: 100%;
+  padding: 14px;
+  border: none;
+  border-radius: 10px;
+  font-size: 14px;
+  font-weight: 600;
+  font-family: 'Noto Sans JP', sans-serif;
+  cursor: pointer;
+  text-align: center;
+  text-decoration: none;
+  -webkit-tap-highlight-color: transparent;
+}
+.btn:active { opacity: 0.85; }
+.btn:disabled { opacity: 0.5; }
+.btn-dark { background: #222; color: #fff; }
+.btn-blue { background: #2563eb; color: #fff; margin-top: 8px; }
 
-  .spot-list { display: flex; flex-direction: column; gap: 8px; margin-bottom: 16px; }
-  .spot-item {
-    background: var(--white);
-    border-radius: var(--radius);
-    padding: 12px 14px;
-    border: 1.5px solid var(--border);
-    display: flex;
-    align-items: flex-start;
-    gap: 12px;
-    cursor: pointer;
-    transition: border-color 0.15s;
-  }
-  .spot-item:hover { border-color: var(--green2); }
-  .spot-rank {
-    min-width: 30px;
-    height: 30px;
-    border-radius: 50%;
-    background: var(--green);
-    color: white;
-    font-size: 0.78rem;
-    font-weight: 700;
-    font-family: 'DM Mono', monospace;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    flex-shrink: 0;
-    margin-top: 1px;
-  }
-  .spot-info { flex: 1; min-width: 0; }
-  .spot-name { font-size: 0.88rem; font-weight: 700; }
-  .spot-cat { font-size: 0.7rem; color: var(--green); font-weight: 700; margin-top: 1px; }
-  .spot-memo { font-size: 0.72rem; color: var(--text2); margin-top: 3px; line-height: 1.5; }
-  .spot-dist {
-    font-family: 'DM Mono', monospace;
-    font-size: 0.72rem;
-    color: var(--green);
-    font-weight: 700;
-    white-space: nowrap;
-    margin-top: 4px;
-  }
+.msg {
+  font-size: 12px;
+  margin-top: 8px;
+  padding: 8px 10px;
+  border-radius: 6px;
+}
+.msg-ok { color: #16a34a; background: #f0fdf4; }
+.msg-err { color: #dc2626; background: #fef2f2; }
 
-  /* ローディング */
-  .loading {
-    text-align: center;
-    padding: 32px;
-    color: var(--text2);
-    font-size: 0.85rem;
-  }
-  .spinner {
-    width: 32px;
-    height: 32px;
-    border: 3px solid var(--border);
-    border-top-color: var(--green);
-    border-radius: 50%;
-    animation: spin 0.8s linear infinite;
-    margin: 0 auto 12px;
-  }
-  @keyframes spin { to { transform: rotate(360deg); } }
+.list { margin-top: 14px; }
 
-  .note { font-size: 0.72rem; color: #999; text-align: center; margin-top: 6px; line-height: 1.6; }
-  .error { background: #fff3f0; border: 1.5px solid #fca99a; border-radius: var(--radius); padding: 12px 14px; font-size: 0.82rem; color: #c0392b; margin-bottom: 12px; }
+.item {
+  background: #fff;
+  border-radius: 10px;
+  margin-bottom: 6px;
+  overflow: hidden;
+}
+.item-main {
+  display: flex;
+  align-items: center;
+  padding: 12px;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  gap: 10px;
+}
+.item-rank {
+  width: 26px; height: 26px;
+  display: flex; align-items: center; justify-content: center;
+  background: #f0f0f0;
+  border-radius: 6px;
+  font-size: 12px; font-weight: 700; color: #666;
+  flex-shrink: 0;
+}
+.item-body { flex: 1; min-width: 0; }
+.item-top {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 2px;
+}
+.item-cat {
+  font-size: 10px; font-weight: 600;
+  padding: 1px 6px;
+  border-radius: 4px;
+  white-space: nowrap;
+}
+.item-dist { font-size: 11px; color: #888; font-weight: 600; }
+.item-name {
+  font-size: 13px; font-weight: 600;
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+.item-memo {
+  font-size: 11px; color: #888; margin-top: 1px;
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+.item-arrow { font-size: 9px; color: #ccc; flex-shrink: 0; }
+
+.item-detail {
+  padding: 0 12px 12px;
+  border-top: 1px solid #f0f0f0;
+}
+.item-addr { font-size: 11px; color: #666; margin: 8px 0; }
+.item-actions { display: flex; gap: 6px; }
+.action-btn {
+  flex: 1;
+  display: block;
+  padding: 9px;
+  border-radius: 8px;
+  color: #fff;
+  font-size: 11px; font-weight: 600;
+  text-align: center;
+  text-decoration: none;
+}
+.action-btn:active { opacity: 0.85; }
+.bg-green { background: #16a34a; }
+.bg-blue { background: #2563eb; }
+
+.cat-公園   { background: #dcfce7; color: #16a34a; }
+.cat-施設   { background: #dbeafe; color: #2563eb; }
+.cat-店舗   { background: #ffedd5; color: #ea580c; }
+.cat-住宅地 { background: #ede9fe; color: #7c3aed; }
+.cat-個人宅 { background: #fce7f3; color: #db2777; }
+.cat-バス停 { background: #cffafe; color: #0891b2; }
+
+.spinner { display: inline-block; animation: spin 1s linear infinite; }
+@keyframes spin { from{transform:rotate(0deg)} to{transform:rotate(360deg)} }
+
+.hidden { display: none !important; }
+
+/* Leaflet popup */
+.spot-popup { font-family: 'Noto Sans JP', sans-serif; font-size: 12px; line-height: 1.5; }
+.spot-popup b { font-size: 13px; }
+.spot-popup .popup-cat { font-size: 10px; color: #888; }
+.spot-popup .popup-nav {
+  display: inline-block;
+  margin-top: 4px;
+  padding: 4px 10px;
+  background: #2563eb;
+  color: #fff;
+  border-radius: 6px;
+  font-size: 11px;
+  font-weight: 600;
+  text-decoration: none;
+}
 </style>
 </head>
 <body>
 
-<header>
-  <div>
-    <h1>📍 人だまりルートプランナー</h1>
-    <div class="sub">現在地から近い順にスポットを表示</div>
+<div class="app">
+  <div class="header">
+    <h1>📍 人だまりマップ</h1>
   </div>
-</header>
-
-<div class="container">
-
-  <!-- ステータス：現在地 -->
-  <div class="status-card" id="geoStatus">
-    <div class="status-icon">📡</div>
-    <div class="status-text">
-      <div class="title">現在地を取得していません</div>
-      <div class="desc">下のボタンを押して開始してください</div>
-    </div>
+  <div class="body">
+    <div id="map"></div>
+    <button class="btn btn-dark" id="locBtn" onclick="getLocation()">
+      現在地を取得して近い順に並べる
+    </button>
+    <a class="btn btn-blue hidden" id="navBtn" href="#" target="_blank">
+      🗺️ Googleマップでナビ開始
+    </a>
+    <div id="msg"></div>
+    <div class="list" id="list"></div>
   </div>
-
-  <!-- ステータス：データ読み込み -->
-  <div class="status-card" id="dataStatus">
-    <div class="status-icon">🗂️</div>
-    <div class="status-text">
-      <div class="title">スポットデータ：31件</div>
-      <div class="desc">住所情報から位置を計算します</div>
-    </div>
-  </div>
-
-  <div id="errorBox"></div>
-
-  <!-- メインボタン -->
-  <button class="btn btn-primary" id="startBtn" onclick="start()">
-    📍 現在地を取得して近い順に並べる
-  </button>
-
-  <!-- 件数フィルター（取得後に表示） -->
-  <div class="filter-row" id="filterRow" style="display:none;">
-    <label>表示件数</label>
-    <input type="range" min="5" max="31" value="10" id="countSlider" oninput="updateCount()">
-    <div class="count-val" id="countVal">10</div>
-  </div>
-
-  <!-- リスト -->
-  <div id="spotListArea"></div>
-
-  <!-- ナビボタン -->
-  <button class="btn btn-orange" id="navBtn" onclick="openMaps()" style="display:none;" disabled>
-    🗺 Googleマップでナビ開始（上位10件）
-  </button>
-  <div class="note" id="navNote" style="display:none;">出発地：現在地 → 近い順に最大9件を経由</div>
-
 </div>
 
 <script>
-// ========== スポットデータ ==========
-const RAW_SPOTS = [
-  { name: '[施設] さだ図書館', address: '大阪府枚方市北中振3丁目27-10', memo: 'おはなし会（乳幼児向け）。第1・3水曜日 11:00〜11:30' },
-  { name: '[公園] 高塚町中央公園', address: '大阪府枚方市高塚町30', memo: 'パルコープの裏。小さい子どもとママが遊びに来てる' },
-  { name: '[施設] 伊加賀西町会館', address: '大阪府枚方市伊加賀西町71-11', memo: '子育てサロン（未就園児対象） 10:00〜11:30' },
-  { name: '[個人宅] 南さま', address: '大阪府枚方市枚方上之町9-35', memo: '住所違うかも。午前中お子さんとママが花の水やりしてた' },
-  { name: '[公園] 伊加賀栄町公園', address: '大阪府枚方市伊加賀栄町9', memo: '子どもとママが遊びに来てる' },
-  { name: '[公園] 伊加賀公園(堤町)', address: '大阪府枚方市堤町7', memo: '子どもとママが遊びに来てる' },
-  { name: '[住宅地] ヒルズシティ付近', address: '大阪府枚方市高塚町30-1', memo: 'わんちゃん散歩の方が多い' },
-  { name: '[公園] オーパスの横の公園', address: '大阪府枚方市高塚町30-25', memo: '送迎バスの時間帯 ママさんが多い' },
-  { name: '[店舗] 西松屋', address: '大阪府枚方市伊加賀南町2-50', memo: '子ども連れが多い' },
-  { name: '[住宅地] 出口4丁目22のブロック', address: '大阪府枚方市出口4丁目22', memo: 'お子さまのいる家庭が何軒かある' },
-  { name: '[住宅地] 出口4丁目38のブロック', address: '大阪府枚方市出口4丁目38', memo: 'お子さまのいる家庭が何軒かある' },
-  { name: '[施設] 子育てサロンさくらんぼ・さだ西臨時保育室', address: '大阪府枚方市出口6丁目20', memo: '3/10(火) 9:45〜11:30 手遊び・制作' },
-  { name: '[住宅地] 出口5丁目25のブロック', address: '大阪府枚方市出口5丁目25', memo: '新築が6軒うち何軒かはお子さまがいるようです' },
-  { name: '[住宅地] ファインシティ枚方', address: '大阪府枚方市出口1丁目3-10', memo: '9:10頃 幼稚園バス送り' },
-  { name: '[施設] 光善寺保育園（ぱんだっこ）', address: '大阪府枚方市出口4丁目36-5', memo: '地域開放している遊び場 10〜12時 入退室自由' },
-  { name: '[店舗] セブンの向かい', address: '大阪府枚方市出口4丁目36-5', memo: '9:15頃 子ども連れのお母さんがおしゃべり' },
-  { name: '[バス停] パークオアシス', address: '大阪府枚方市出口1丁目17-1', memo: '9:10頃 幼稚園バス送り' },
-  { name: '[住宅地] 香里ケ丘ウエストヒルズ付近', address: '大阪府枚方市東中振1丁目34-3', memo: '周辺に新しい住宅地もある' },
-  { name: '[住宅地] 子どもがたくさんいそうな住宅地', address: '大阪府枚方市翠香園町24', memo: '子どもがたくさんいそう' },
-  { name: '[公園] 南中振公園', address: '大阪府枚方市南中振2丁目76-1', memo: '' },
-  { name: '[個人宅] ○○さま（翠香園町）', address: '大阪府枚方市翠香園町18-1', memo: '周辺にある一軒家。おこさまがいる' },
-  { name: '[バス停] 送迎後のママたち（南中振）', address: '大阪府枚方市南中振2丁目84-3', memo: '送迎後のママたち' },
-  { name: '[公園] 翠香園ふれあい公園', address: '大阪府枚方市翠香園町8-5', memo: '' },
-  { name: '[住宅地] ルネヒューマンズガーデン枚方', address: '大阪府枚方市出口1丁目2-16', memo: '南西に幼稚園送り後のママいる' },
-  { name: '[バス停] ひらかたパーク', address: '大阪府枚方市枚方公園町1-1', memo: '送迎前後、バス停に人だまり。朝8:27、帰り2:45、みどりバス' },
-  { name: '[バス停] 伊加賀西町北公園', address: '大阪府枚方市伊加賀西町56', memo: '送迎前後、朝8:44、帰り2:56、赤バス。周辺に新しい家有' },
-  { name: '[バス停] 出口ふれあい公園', address: '大阪府枚方市出口2丁目1-18', memo: '送迎前後、朝8:55、帰り3:07、赤バス' },
-  { name: '[個人宅] ○○さま（伊加賀栄町）', address: '大阪府枚方市伊加賀栄町17-17-2', memo: '半年ほど前にできた新しい家。1-2歳の子どもがいる' },
-  { name: '[住宅地] 伊加賀栄町23のブロック', address: '大阪府枚方市伊加賀栄町23', memo: '新しいおうちが多く、子どもがいっぱい' },
-  { name: '[公園] 伊加賀栄公園', address: '大阪府枚方市伊加賀栄町9', memo: 'アプロの前' },
-  { name: '[店舗] コノミヤ 枚方店', address: '大阪府枚方市伊加賀緑町1-15', memo: '月曜日10%オフ' },
+// ━━━ Data ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+var SPOTS = [
+  {id:1, cat:"施設",name:"さだ図書館",address:"枚方市北中振3丁目27-10",memo:"おはなし会 第1・3水曜 11:00〜11:30",lat:34.7970018,lng:135.6286531},
+  {id:2, cat:"公園",name:"高塚町中央公園",address:"枚方市高塚町30",memo:"パルコープの裏。子どもとママ",lat:34.8065389,lng:135.6431078},
+  {id:3, cat:"施設",name:"伊加賀西町会館",address:"枚方市伊加賀西町71-11",memo:"子育てサロン 10:00〜11:30",lat:34.8064683,lng:135.6298291},
+  {id:4, cat:"個人宅",name:"南さま",address:"枚方市枚方上之町9-35",memo:"午前中ママと花の水やり",lat:34.8100306,lng:135.6442064},
+  {id:5, cat:"公園",name:"伊加賀栄町公園",address:"枚方市伊加賀栄町9",memo:"子どもとママが遊びに来てる",lat:34.8058571,lng:135.635389},
+  {id:6, cat:"公園",name:"伊加賀公園(堤町)",address:"枚方市堤町7",memo:"子どもとママが遊びに来てる",lat:34.8113921,lng:135.6376781},
+  {id:7, cat:"住宅地",name:"ヒルズシティ付近",address:"枚方市高塚町30-1",memo:"わんちゃん散歩の方が多い",lat:34.8072396,lng:135.6434369},
+  {id:8, cat:"公園",name:"オーパスの横の公園",address:"枚方市高塚町30-25",memo:"送迎バスの時間帯 ママさんが多い",lat:34.8056895,lng:135.6435107},
+  {id:9, cat:"店舗",name:"西松屋",address:"枚方市伊加賀南町2-50",memo:"子ども連れが多い",lat:34.8090969,lng:135.638914},
+  {id:10,cat:"住宅地",name:"出口4丁目22のブロック",address:"枚方市出口4丁目22",memo:"お子さまのいる家庭が何軒かある",lat:34.800188,lng:135.6223397},
+  {id:11,cat:"住宅地",name:"出口4丁目38のブロック",address:"枚方市出口4丁目38",memo:"お子さまのいる家庭が何軒かある",lat:34.7997373,lng:135.6233524},
+  {id:12,cat:"施設",name:"子育てサロンさくらんぼ",address:"枚方市出口6丁目20",memo:"9:45〜11:30 手遊び・制作",lat:34.796314,lng:135.620744},
+  {id:13,cat:"住宅地",name:"出口5丁目25のブロック",address:"枚方市出口5丁目25",memo:"新築6軒、お子さまのいる家庭あり",lat:34.7974786,lng:135.6255055},
+  {id:14,cat:"住宅地",name:"ファインシティ枚方",address:"枚方市出口1丁目3-10",memo:"9:10頃 幼稚園バス送り",lat:34.8031746,lng:135.6279569},
+  {id:15,cat:"施設",name:"光善寺保育園（ぱんだっこ）",address:"枚方市出口4丁目36-5",memo:"地域開放 10〜12時 入退室自由",lat:34.7991257,lng:135.6224622},
+  {id:16,cat:"店舗",name:"セブンの向かい",address:"枚方市出口2丁目24-7",memo:"9:15頃 子連れのお母さんがおしゃべり",lat:34.8026906,lng:135.6217601},
+  {id:17,cat:"バス停",name:"パークオアシス",address:"枚方市出口1丁目17-1",memo:"9:10頃 幼稚園バス送り",lat:34.8023856,lng:135.6281884},
+  {id:18,cat:"住宅地",name:"香里ケ丘ウエストヒルズ付近",address:"枚方市東中振1丁目34-3",memo:"周辺に新しい住宅地もある",lat:34.7956468,lng:135.6451374},
+  {id:19,cat:"住宅地",name:"子どもが多い住宅地",address:"枚方市翠香園町24",memo:"子どもがたくさんいそう",lat:34.8007,lng:135.6395},
+  {id:20,cat:"公園",name:"南中振公園",address:"枚方市南中振2丁目76-1",memo:"—",lat:34.7942918,lng:135.6289814},
+  {id:21,cat:"個人宅",name:"○○さま（翠香園町）",address:"枚方市翠香園町18-1",memo:"一軒家。おこさまがいる",lat:34.8007931,lng:135.6379528},
+  {id:22,cat:"バス停",name:"送迎後のママたち（南中振）",address:"枚方市南中振2丁目84-3",memo:"送迎後のママたち",lat:34.7944971,lng:135.6281546},
+  {id:23,cat:"公園",name:"翠香園ふれあい公園",address:"枚方市翠香園町8-5",memo:"—",lat:34.7998588,lng:135.6367185},
+  {id:24,cat:"住宅地",name:"ルネヒューマンズガーデン枚方",address:"枚方市出口1丁目2-16",memo:"幼稚園送り後のママいる",lat:34.8017758,lng:135.6304254},
+  {id:25,cat:"バス停",name:"ひらかたパーク",address:"枚方市枚方公園町1-1",memo:"朝8:27、帰り2:45、みどりバス",lat:34.8059896,lng:135.6392002},
+  {id:26,cat:"バス停",name:"伊加賀西町北公園",address:"枚方市伊加賀西町56",memo:"朝8:44、帰り2:56、赤バス。新築あり",lat:34.8070542,lng:135.6252535},
+  {id:27,cat:"バス停",name:"出口ふれあい公園",address:"枚方市出口2丁目1-18",memo:"朝8:55、帰り3:07、赤バス",lat:34.8031595,lng:135.6268292},
+  {id:28,cat:"個人宅",name:"○○さま（伊加賀栄町）",address:"枚方市伊加賀栄町17-17-2",memo:"半年前の新築。1-2歳の子ども",lat:34.8056,lng:135.634},
+  {id:29,cat:"住宅地",name:"伊加賀栄町23のブロック",address:"枚方市伊加賀栄町23",memo:"新しいおうちが多く子どもがいっぱい",lat:34.8058,lng:135.6352},
+  {id:30,cat:"公園",name:"伊加賀栄公園",address:"枚方市伊加賀栄町9",memo:"アプロの前",lat:34.8058571,lng:135.635389},
+  {id:31,cat:"店舗",name:"コノミヤ 枚方店",address:"枚方市伊加賀緑町1-15",memo:"月曜日10%オフ",lat:34.8086202,lng:135.6329772}
 ];
 
-// ========== 状態 ==========
-let currentLat = null;
-let currentLng = null;
-let geocodedSpots = [];
-let sortedSpots = [];
-let displayCount = 10;
+var CAT_ICON = {"公園":"🌳","施設":"🏛️","店舗":"🛒","住宅地":"🏘️","個人宅":"🏠","バス停":"🚌"};
 
-// ========== 距離計算 ==========
+// ━━━ State ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+var myPos = null;
+var expandedId = null;
+var map = null;
+var myMarker = null;
+var spotMarkers = [];
+
+// ━━━ Map Init ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+function initMap() {
+  // 全スポットの中心を計算
+  var sumLat = 0, sumLng = 0;
+  for (var i = 0; i < SPOTS.length; i++) {
+    sumLat += SPOTS[i].lat;
+    sumLng += SPOTS[i].lng;
+  }
+  var centerLat = sumLat / SPOTS.length;
+  var centerLng = sumLng / SPOTS.length;
+
+  map = L.map('map', {
+    center: [centerLat, centerLng],
+    zoom: 14,
+    zoomControl: false
+  });
+
+  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+    attribution: '&copy; OpenStreetMap',
+    maxZoom: 19
+  }).addTo(map);
+
+  // ズームコントロールを右下に
+  L.control.zoom({ position: 'bottomright' }).addTo(map);
+
+  // オレンジ色のカスタムアイコン
+  var orangeIcon = L.divIcon({
+    className: '',
+    html: '<svg width="24" height="36" viewBox="0 0 24 36"><path d="M12 0C5.4 0 0 5.4 0 12c0 9 12 24 12 24s12-15 12-24C24 5.4 18.6 0 12 0z" fill="#F97316"/><circle cx="12" cy="11" r="5" fill="white"/></svg>',
+    iconSize: [24, 36],
+    iconAnchor: [12, 36],
+    popupAnchor: [0, -30]
+  });
+
+  // 全31件のピンを表示
+  for (var i = 0; i < SPOTS.length; i++) {
+    var s = SPOTS[i];
+    var popupHtml = '<div class="spot-popup">'
+      + '<div class="popup-cat">' + CAT_ICON[s.cat] + ' ' + s.cat + '</div>'
+      + '<b>' + s.name + '</b><br>'
+      + '<span style="color:#666">' + s.memo + '</span><br>'
+      + '<a class="popup-nav" href="https://www.google.com/maps/search/?api=1&query=' + encodeURIComponent(s.address) + '" target="_blank">📍 Googleマップで開く</a>'
+      + '</div>';
+    var marker = L.marker([s.lat, s.lng], { icon: orangeIcon })
+      .addTo(map)
+      .bindPopup(popupHtml);
+    spotMarkers.push(marker);
+  }
+
+  // 全ピンが見える範囲にフィット
+  var bounds = L.latLngBounds(SPOTS.map(function(s) { return [s.lat, s.lng]; }));
+  map.fitBounds(bounds, { padding: [20, 20] });
+}
+
+// ━━━ Haversine (km) ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 function haversine(lat1, lng1, lat2, lng2) {
-  const R = 6371;
-  const dLat = (lat2 - lat1) * Math.PI / 180;
-  const dLng = (lng2 - lng1) * Math.PI / 180;
-  const a = Math.sin(dLat/2)**2 + Math.cos(lat1*Math.PI/180)*Math.cos(lat2*Math.PI/180)*Math.sin(dLng/2)**2;
+  var R = 6371;
+  var dLat = (lat2 - lat1) * Math.PI / 180;
+  var dLng = (lng2 - lng1) * Math.PI / 180;
+  var a = Math.sin(dLat/2)*Math.sin(dLat/2) + Math.cos(lat1*Math.PI/180)*Math.cos(lat2*Math.PI/180)*Math.sin(dLng/2)*Math.sin(dLng/2);
   return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
 }
-function formatDist(km) {
-  return km < 1 ? `${Math.round(km*1000)}m` : `${km.toFixed(1)}km`;
+
+function fmtDist(km) {
+  return km < 1 ? Math.round(km * 1000) + 'm' : km.toFixed(1) + 'km';
 }
 
-// ========== ジオコーディング ==========
-async function geocodeAddress(address) {
-  const url = `https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(address)}&format=json&limit=1`;
-  const res = await fetch(url, { headers: { 'User-Agent': 'spot-map/1.0' } });
-  const data = await res.json();
-  if (data && data.length > 0) {
-    return { lat: parseFloat(data[0].lat), lng: parseFloat(data[0].lon) };
-  }
-  return null;
-}
+// ━━━ 最近傍法（Nearest Neighbor）ルート順序 ━━━━━━━━━━━━━━
+function nearestNeighborSort(spots, startLat, startLng) {
+  var result = [];
+  var remaining = [];
+  var i, j, nearestIdx, nearestDist, d, next;
 
-// ========== メイン処理 ==========
-async function start() {
-  const btn = document.getElementById('startBtn');
-  btn.disabled = true;
-  btn.textContent = '処理中...';
-  clearError();
-
-  // Step1: 現在地取得
-  updateGeoStatus('⏳', '現在地を取得中...', 'ブラウザの許可ダイアログを確認してください');
-  try {
-    const pos = await new Promise((resolve, reject) => {
-      navigator.geolocation.getCurrentPosition(resolve, reject, { timeout: 10000 });
+  for (i = 0; i < spots.length; i++) {
+    remaining.push({
+      id: spots[i].id, cat: spots[i].cat, name: spots[i].name,
+      address: spots[i].address, memo: spots[i].memo,
+      lat: spots[i].lat, lng: spots[i].lng
     });
-    currentLat = pos.coords.latitude;
-    currentLng = pos.coords.longitude;
-    updateGeoStatus('✅', '現在地を取得しました', `緯度 ${currentLat.toFixed(4)} / 経度 ${currentLng.toFixed(4)}`);
-  } catch (e) {
-    updateGeoStatus('❌', '現在地の取得に失敗しました', '位置情報の許可を確認してください');
-    showError('位置情報を取得できませんでした。ブラウザの設定で位置情報を許可してください。');
-    btn.disabled = false;
-    btn.textContent = '📍 現在地を取得して近い順に並べる';
-    return;
   }
 
-  // Step2: ジオコーディング（未取得のみ）
-  if (geocodedSpots.length === 0) {
-    showLoading('住所から位置情報を取得中... (31件)');
-    const results = [];
-    for (let i = 0; i < RAW_SPOTS.length; i++) {
-      const s = RAW_SPOTS[i];
-      showLoading(`住所から位置情報を取得中... (${i+1}/31件)`);
-      try {
-        const geo = await geocodeAddress(s.address);
-        results.push({ ...s, lat: geo?.lat || null, lng: geo?.lng || null });
-      } catch {
-        results.push({ ...s, lat: null, lng: null });
+  var curLat = startLat;
+  var curLng = startLng;
+
+  while (remaining.length > 0) {
+    nearestIdx = 0;
+    nearestDist = Infinity;
+    for (j = 0; j < remaining.length; j++) {
+      d = haversine(curLat, curLng, remaining[j].lat, remaining[j].lng);
+      if (d < nearestDist) {
+        nearestDist = d;
+        nearestIdx = j;
       }
-      await new Promise(r => setTimeout(r, 300)); // レート制限対策
     }
-    geocodedSpots = results.filter(s => s.lat && s.lng);
-    const failed = results.length - geocodedSpots.length;
-    updateDataStatus('✅', `位置取得完了：${geocodedSpots.length}件`, failed > 0 ? `${failed}件は住所が見つかりませんでした` : '全件取得成功');
+    next = remaining.splice(nearestIdx, 1)[0];
+    next.routeDist = nearestDist;
+    next.originDist = haversine(startLat, startLng, next.lat, next.lng);
+    result.push(next);
+    curLat = next.lat;
+    curLng = next.lng;
   }
-
-  // Step3: 距離計算＆ソート
-  sortedSpots = geocodedSpots.map(s => ({
-    ...s,
-    dist: haversine(currentLat, currentLng, s.lat, s.lng)
-  })).sort((a, b) => a.dist - b.dist);
-
-  // Step4: 表示
-  document.getElementById('filterRow').style.display = 'flex';
-  document.getElementById('navBtn').style.display = 'block';
-  document.getElementById('navNote').style.display = 'block';
-  renderList();
-
-  btn.textContent = '🔄 現在地を更新して再計算';
-  btn.disabled = false;
+  return result;
 }
 
-function renderList() {
-  const area = document.getElementById('spotListArea');
-  const count = parseInt(document.getElementById('countSlider').value);
-  displayCount = count;
+// ━━━ Google Maps Navigation URLs ━━━━━━━━━━━━━━━━━━━━━━━━
+function mapUrl(spot) {
+  return 'https://www.google.com/maps/search/?api=1&query=' + encodeURIComponent(spot.address);
+}
 
-  if (sortedSpots.length === 0) {
-    area.innerHTML = '<div class="loading"><div class="spinner"></div><p>データがありません</p></div>';
+function singleNavUrl(spot) {
+  if (!myPos) return mapUrl(spot);
+  return 'https://www.google.com/maps/dir/?api=1'
+    + '&origin=' + myPos.lat + ',' + myPos.lng
+    + '&destination=' + encodeURIComponent(spot.address)
+    + '&travelmode=walking';
+}
+
+function multiNavUrl(spots) {
+  if (!myPos || !spots.length) return '#';
+  var limited = spots.slice(0, 10);
+  var dest = limited[limited.length - 1];
+  var wps = limited.slice(0, -1);
+  var url = 'https://www.google.com/maps/dir/?api=1'
+    + '&origin=' + myPos.lat + ',' + myPos.lng
+    + '&destination=' + encodeURIComponent(dest.address)
+    + '&travelmode=walking';
+  if (wps.length > 0) {
+    var wpAddrs = [];
+    for (var i = 0; i < wps.length; i++) {
+      wpAddrs.push(encodeURIComponent(wps[i].address));
+    }
+    url += '&waypoints=' + wpAddrs.join('%7C');
+  }
+  return url;
+}
+
+// ━━━ Location ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+function getLocation() {
+  if (!navigator.geolocation) {
+    showMsg('err', 'この端末では位置情報を利用できません');
+    return;
+  }
+  var btn = document.getElementById('locBtn');
+  btn.disabled = true;
+  btn.innerHTML = '<span class="spinner">⟳</span> 取得中...';
+
+  navigator.geolocation.getCurrentPosition(
+    function(pos) {
+      myPos = { lat: pos.coords.latitude, lng: pos.coords.longitude };
+      btn.disabled = false;
+      btn.textContent = '現在地を更新して再計算';
+      showMsg('ok', '✓ 現在地を取得しました');
+
+      // 地図上に現在地マーカーを追加
+      if (myMarker) {
+        map.removeLayer(myMarker);
+      }
+      var myIcon = L.divIcon({
+        className: '',
+        html: '<div style="width:16px;height:16px;background:#2563eb;border:3px solid white;border-radius:50%;box-shadow:0 1px 4px rgba(0,0,0,0.3)"></div>',
+        iconSize: [16, 16],
+        iconAnchor: [8, 8]
+      });
+      myMarker = L.marker([myPos.lat, myPos.lng], { icon: myIcon, zIndexOffset: 1000 })
+        .addTo(map)
+        .bindPopup('<b>現在地</b>');
+
+      // 現在地を含めて地図の範囲を調整
+      var allPoints = SPOTS.map(function(s) { return [s.lat, s.lng]; });
+      allPoints.push([myPos.lat, myPos.lng]);
+      map.fitBounds(L.latLngBounds(allPoints), { padding: [20, 20] });
+
+      render();
+    },
+    function(err) {
+      btn.disabled = false;
+      btn.textContent = '現在地を取得して近い順に並べる';
+      showMsg('err', err.code === 1 ? '位置情報の許可が必要です' : '位置情報を取得できませんでした');
+    },
+    { enableHighAccuracy: true, timeout: 10000 }
+  );
+}
+
+function showMsg(type, text) {
+  document.getElementById('msg').innerHTML = '<div class="msg msg-' + type + '">' + text + '</div>';
+}
+
+// ━━━ Render ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+function render() {
+  if (!myPos) {
+    document.getElementById('list').innerHTML = '';
     return;
   }
 
-  const shown = sortedSpots.slice(0, count);
-  area.innerHTML = `
-    <div class="section-title">
-      近い順リスト <span class="badge">${count}件表示</span>
-    </div>
-    <div class="spot-list">
-      ${shown.map((s, i) => `
-        <div class="spot-item" onclick="openSpotMap('${s.lat}','${s.lng}')">
-          <div class="spot-rank">${i+1}</div>
-          <div class="spot-info">
-            <div class="spot-name">${s.name.replace(/^\[.+?\]\s?/, '')}</div>
-            <div class="spot-cat">${s.name.match(/^\[(.+?)\]/)?.[1] || ''}</div>
-            ${s.memo ? `<div class="spot-memo">${s.memo}</div>` : ''}
-            <div class="spot-dist">📏 直線 ${formatDist(s.dist)}</div>
-          </div>
-        </div>
-      `).join('')}
-    </div>
-  `;
+  var sorted = nearestNeighborSort(SPOTS, myPos.lat, myPos.lng);
 
-  document.getElementById('navBtn').disabled = false;
-  document.getElementById('navBtn').textContent = `🗺 Googleマップでナビ開始（上位${Math.min(count,10)}件）`;
-}
+  // Nav button
+  var navBtn = document.getElementById('navBtn');
+  var navSpots = sorted.slice(0, 10);
+  navBtn.href = multiNavUrl(navSpots);
+  navBtn.textContent = '🗺️ Googleマップでナビ開始（ルート順10件）';
+  navBtn.classList.remove('hidden');
 
-function updateCount() {
-  const val = document.getElementById('countSlider').value;
-  document.getElementById('countVal').textContent = val;
-  renderList();
-}
-
-function openSpotMap(lat, lng) {
-  window.open(`https://www.google.com/maps?q=${lat},${lng}`, '_blank');
-}
-
-function openMaps() {
-  if (!currentLat || sortedSpots.length === 0) return;
-  const targets = sortedSpots.slice(0, Math.min(displayCount, 10));
-  const origin = `${currentLat},${currentLng}`;
-  const dest = targets[targets.length - 1];
-  const waypoints = targets.slice(0, -1).map(s => `${s.lat},${s.lng}`).join('|');
-  let url = `https://www.google.com/maps/dir/?api=1&origin=${origin}&destination=${dest.lat},${dest.lng}&travelmode=driving`;
-  if (waypoints) url += `&waypoints=${waypoints}`;
-  window.open(url, '_blank');
+  // List
+  var html = '';
+  for (var i = 0; i < sorted.length; i++) {
+    var s = sorted[i];
+    var exp = (expandedId === s.id);
+    html += '<div class="item">';
+    html +=   '<div class="item-main" onclick="toggle(' + s.id + ')">';
+    html +=     '<div class="item-rank">' + (i + 1) + '</div>';
+    html +=     '<div class="item-body">';
+    html +=       '<div class="item-top">';
+    html +=         '<span class="item-cat cat-' + s.cat + '">' + CAT_ICON[s.cat] + ' ' + s.cat + '</span>';
+    html +=         '<span class="item-dist">' + fmtDist(s.originDist) + '</span>';
+    html +=       '</div>';
+    html +=       '<div class="item-name">' + s.name + '</div>';
+    html +=       '<div class="item-memo">' + s.memo + '</div>';
+    html +=     '</div>';
+    html +=     '<div class="item-arrow">' + (exp ? '▲' : '▼') + '</div>';
+    html +=   '</div>';
+    if (exp) {
+      html += '<div class="item-detail">';
+      html +=   '<div class="item-addr">📮 ' + s.address + '</div>';
+      html +=   '<div class="item-actions">';
+      html +=     '<a class="action-btn bg-green" href="' + mapUrl(s) + '" target="_blank">📍 マップで見る</a>';
+      html +=     '<a class="action-btn bg-blue" href="' + singleNavUrl(s) + '" target="_blank">🧭 ナビ開始</a>';
+      html +=   '</div>';
+      html += '</div>';
+    }
+    html += '</div>';
+  }
+  document.getElementById('list').innerHTML = html;
 }
 
-// ========== UI ヘルパー ==========
-function updateGeoStatus(icon, title, desc) {
-  document.getElementById('geoStatus').innerHTML = `
-    <div class="status-icon">${icon}</div>
-    <div class="status-text">
-      <div class="title">${title}</div>
-      <div class="desc">${desc}</div>
-    </div>`;
+function toggle(id) {
+  expandedId = (expandedId === id) ? null : id;
+  render();
 }
-function updateDataStatus(icon, title, desc) {
-  document.getElementById('dataStatus').innerHTML = `
-    <div class="status-icon">${icon}</div>
-    <div class="status-text">
-      <div class="title">${title}</div>
-      <div class="desc">${desc}</div>
-    </div>`;
-}
-function showLoading(msg) {
-  document.getElementById('spotListArea').innerHTML = `
-    <div class="loading">
-      <div class="spinner"></div>
-      <p>${msg}</p>
-    </div>`;
-}
-function showError(msg) {
-  document.getElementById('errorBox').innerHTML = `<div class="error">⚠️ ${msg}</div>`;
-}
-function clearError() {
-  document.getElementById('errorBox').innerHTML = '';
-}
+
+// ━━━ Init ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+initMap();
+render();
 </script>
 </body>
 </html>
