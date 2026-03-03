@@ -206,7 +206,7 @@ const SPOTS = [
   {id:13,cat:"住宅地",name:"出口5丁目25のブロック",address:"枚方市出口5丁目25",memo:"新築6軒、お子さまのいる家庭あり",lat:34.7985,lng:135.6233},// ~出口5丁目
   {id:14,cat:"住宅地",name:"ファインシティ枚方",address:"枚方市出口1丁目3-10",memo:"9:10頃 幼稚園バス送り",lat:34.8031746,lng:135.6279569},// ✓
   {id:15,cat:"施設",name:"光善寺保育園（ぱんだっこ）",address:"枚方市出口4丁目36-5",memo:"地域開放 10〜12時 入退室自由",lat:34.7991257,lng:135.6224622},// ✓
-  {id:16,cat:"店舗",name:"セブンの向かい",address:"枚方市出口4丁目36-5",memo:"9:15頃 子連れのお母さんがおしゃべり",lat:34.7991257,lng:135.6224622},// ~同住所
+  {id:16,cat:"店舗",name:"セブンの向かい",address:"枚方市出口2丁目24-7",memo:"9:15頃 子連れのお母さんがおしゃべり",lat:34.8026906,lng:135.6217601},// ✓
   {id:17,cat:"バス停",name:"パークオアシス",address:"枚方市出口1丁目17-1",memo:"9:10頃 幼稚園バス送り",lat:34.8023856,lng:135.6281884},// ✓
   {id:18,cat:"住宅地",name:"香里ケ丘ウエストヒルズ付近",address:"枚方市東中振1丁目34-3",memo:"周辺に新しい住宅地もある",lat:34.7956468,lng:135.6451374},// ✓
   {id:19,cat:"住宅地",name:"子どもが多い住宅地",address:"枚方市翠香園町24",memo:"子どもがたくさんいそう",lat:34.8005,lng:135.6385},// ~翠香園町
@@ -246,16 +246,17 @@ function mapUrl(spot) {
 }
 function singleNavUrl(spot) {
   if (!myPos) return mapUrl(spot);
-  return `https://www.google.com/maps/dir/?api=1&origin=${myPos.lat},${myPos.lng}&destination=${encodeURIComponent(spot.address)}&travelmode=walking`;
+  return `https://www.google.com/maps/dir/?api=1&origin=${myPos.lat},${myPos.lng}&destination=${spot.lat},${spot.lng}&travelmode=walking`;
 }
 function multiNavUrl(spots) {
   if (!myPos || !spots.length) return '#';
-  // Google Maps dir URL: origin / waypoints / destination（住所ベース）
-  const dest = spots[spots.length - 1];
-  const waypoints = spots.slice(0, -1);
-  let url = `https://www.google.com/maps/dir/?api=1&origin=${myPos.lat},${myPos.lng}&destination=${encodeURIComponent(dest.address)}&travelmode=walking`;
+  // 座標ベース＋経由地は最大8件（Google Maps制限）
+  const limited = spots.slice(0, 9);
+  const dest = limited[limited.length - 1];
+  const waypoints = limited.slice(0, -1);
+  let url = `https://www.google.com/maps/dir/?api=1&origin=${myPos.lat},${myPos.lng}&destination=${dest.lat},${dest.lng}&travelmode=walking`;
   if (waypoints.length > 0) {
-    url += '&waypoints=' + waypoints.map(s => encodeURIComponent(s.address)).join('|');
+    url += '&waypoints=' + waypoints.map(s => `${s.lat},${s.lng}`).join('|');
   }
   return url;
 }
@@ -299,12 +300,12 @@ function render() {
   }));
   if (myPos) spots.sort((a, b) => a.dist - b.dist);
 
-  // Nav button（上位10件まで）
+  // Nav button（上位9件まで：Google Maps経由地上限）
   const navBtn = document.getElementById('navBtn');
   if (myPos) {
-    const navSpots = spots.slice(0, 10);
+    const navSpots = spots.slice(0, 9);
     navBtn.href = multiNavUrl(navSpots);
-    navBtn.textContent = `🗺️ Googleマップでナビ開始（上位${navSpots.length}件）`;
+    navBtn.textContent = `🗺️ Googleマップでナビ開始（近い順${navSpots.length}件）`;
     navBtn.classList.remove('hidden');
   }
 
