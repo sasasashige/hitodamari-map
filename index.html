@@ -19,7 +19,6 @@ body {
 
 .app { max-width: 480px; margin: 0 auto; }
 
-/* ── Header ── */
 .header {
   background: #222;
   color: #fff;
@@ -30,7 +29,6 @@ body {
 }
 .header h1 { font-size: 16px; font-weight: 700; }
 
-/* ── Buttons ── */
 .body { padding: 12px; }
 
 .btn {
@@ -49,16 +47,8 @@ body {
 }
 .btn:active { opacity: 0.85; }
 .btn:disabled { opacity: 0.5; }
-
-.btn-dark {
-  background: #222;
-  color: #fff;
-}
-.btn-blue {
-  background: #2563eb;
-  color: #fff;
-  margin-top: 8px;
-}
+.btn-dark { background: #222; color: #fff; }
+.btn-blue { background: #2563eb; color: #fff; margin-top: 8px; }
 
 .msg {
   font-size: 12px;
@@ -69,7 +59,6 @@ body {
 .msg-ok { color: #16a34a; background: #f0fdf4; }
 .msg-err { color: #dc2626; background: #fef2f2; }
 
-/* ── List ── */
 .list { margin-top: 14px; }
 
 .item {
@@ -107,9 +96,7 @@ body {
   border-radius: 4px;
   white-space: nowrap;
 }
-.item-dist {
-  font-size: 11px; color: #888; font-weight: 600;
-}
+.item-dist { font-size: 11px; color: #888; font-weight: 600; }
 .item-name {
   font-size: 13px; font-weight: 600;
   overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
@@ -118,21 +105,14 @@ body {
   font-size: 11px; color: #888; margin-top: 1px;
   overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
 }
-.item-arrow {
-  font-size: 9px; color: #ccc; flex-shrink: 0;
-}
+.item-arrow { font-size: 9px; color: #ccc; flex-shrink: 0; }
 
 .item-detail {
   padding: 0 12px 12px;
   border-top: 1px solid #f0f0f0;
 }
-.item-addr {
-  font-size: 11px; color: #666;
-  margin: 8px 0;
-}
-.item-actions {
-  display: flex; gap: 6px;
-}
+.item-addr { font-size: 11px; color: #666; margin: 8px 0; }
+.item-actions { display: flex; gap: 6px; }
 .action-btn {
   flex: 1;
   display: block;
@@ -147,7 +127,6 @@ body {
 .bg-green { background: #16a34a; }
 .bg-blue { background: #2563eb; }
 
-/* ── Category colors ── */
 .cat-公園   { background: #dcfce7; color: #16a34a; }
 .cat-施設   { background: #dbeafe; color: #2563eb; }
 .cat-店舗   { background: #ffedd5; color: #ea580c; }
@@ -155,14 +134,8 @@ body {
 .cat-個人宅 { background: #fce7f3; color: #db2777; }
 .cat-バス停 { background: #cffafe; color: #0891b2; }
 
-.spinner {
-  display: inline-block;
-  animation: spin 1s linear infinite;
-}
-@keyframes spin {
-  from { transform: rotate(0deg); }
-  to { transform: rotate(360deg); }
-}
+.spinner { display: inline-block; animation: spin 1s linear infinite; }
+@keyframes spin { from{transform:rotate(0deg)} to{transform:rotate(360deg)} }
 
 .hidden { display: none !important; }
 </style>
@@ -172,9 +145,7 @@ body {
 <div class="app">
   <div class="header">
     <h1>📍 人だまりマップ</h1>
-
   </div>
-
   <div class="body">
     <button class="btn btn-dark" id="locBtn" onclick="getLocation()">
       現在地を取得して近い順に並べる
@@ -189,74 +160,131 @@ body {
 
 <script>
 // ━━━ Data ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-// ✓=Google Places API確定 / ~=町丁目エリア代表座標
-const SPOTS = [
-  {id:1, cat:"施設",name:"さだ図書館",address:"枚方市北中振3丁目27-10",memo:"おはなし会 第1・3水曜 11:00〜11:30",lat:34.7970018,lng:135.6286531},// ✓
-  {id:2, cat:"公園",name:"高塚町中央公園",address:"枚方市高塚町30",memo:"パルコープの裏。子どもとママ",lat:34.8065389,lng:135.6431078},// ✓
-  {id:3, cat:"施設",name:"伊加賀西町会館",address:"枚方市伊加賀西町71-11",memo:"子育てサロン 10:00〜11:30",lat:34.8064683,lng:135.6298291},// ✓
-  {id:4, cat:"個人宅",name:"南さま",address:"枚方市枚方上之町9-35",memo:"午前中ママと花の水やり",lat:34.8102486,lng:135.6438308},// ~枚方上之町
-  {id:5, cat:"公園",name:"伊加賀栄町公園",address:"枚方市伊加賀栄町9",memo:"子どもとママが遊びに来てる",lat:34.8058571,lng:135.6353890},// ✓
-  {id:6, cat:"公園",name:"伊加賀公園(堤町)",address:"枚方市堤町7",memo:"子どもとママが遊びに来てる",lat:34.8113921,lng:135.6376781},// ✓
-  {id:7, cat:"住宅地",name:"ヒルズシティ付近",address:"枚方市高塚町30-1",memo:"わんちゃん散歩の方が多い",lat:34.8072396,lng:135.6434369},// ✓
-  {id:8, cat:"公園",name:"オーパスの横の公園",address:"枚方市高塚町30-25",memo:"送迎バスの時間帯 ママさんが多い",lat:34.8056895,lng:135.6435107},// ✓
-  {id:9, cat:"店舗",name:"西松屋",address:"枚方市伊加賀南町2-50",memo:"子ども連れが多い",lat:34.8090969,lng:135.6389140},// ✓
-  {id:10,cat:"住宅地",name:"出口4丁目22のブロック",address:"枚方市出口4丁目22",memo:"お子さまのいる家庭が何軒かある",lat:34.8005,lng:135.6232},// ~出口4丁目
-  {id:11,cat:"住宅地",name:"出口4丁目38のブロック",address:"枚方市出口4丁目38",memo:"お子さまのいる家庭が何軒かある",lat:34.7993,lng:135.6222},// ~光善寺保育園付近
-  {id:12,cat:"施設",name:"子育てサロンさくらんぼ",address:"枚方市出口6丁目20",memo:"9:45〜11:30 手遊び・制作",lat:34.7987,lng:135.6200},// ~出口6丁目
-  {id:13,cat:"住宅地",name:"出口5丁目25のブロック",address:"枚方市出口5丁目25",memo:"新築6軒、お子さまのいる家庭あり",lat:34.7985,lng:135.6233},// ~出口5丁目
-  {id:14,cat:"住宅地",name:"ファインシティ枚方",address:"枚方市出口1丁目3-10",memo:"9:10頃 幼稚園バス送り",lat:34.8031746,lng:135.6279569},// ✓
-  {id:15,cat:"施設",name:"光善寺保育園（ぱんだっこ）",address:"枚方市出口4丁目36-5",memo:"地域開放 10〜12時 入退室自由",lat:34.7991257,lng:135.6224622},// ✓
-  {id:16,cat:"店舗",name:"セブンの向かい",address:"枚方市出口2丁目24-7",memo:"9:15頃 子連れのお母さんがおしゃべり",lat:34.8026906,lng:135.6217601},// ✓
-  {id:17,cat:"バス停",name:"パークオアシス",address:"枚方市出口1丁目17-1",memo:"9:10頃 幼稚園バス送り",lat:34.8023856,lng:135.6281884},// ✓
-  {id:18,cat:"住宅地",name:"香里ケ丘ウエストヒルズ付近",address:"枚方市東中振1丁目34-3",memo:"周辺に新しい住宅地もある",lat:34.7956468,lng:135.6451374},// ✓
-  {id:19,cat:"住宅地",name:"子どもが多い住宅地",address:"枚方市翠香園町24",memo:"子どもがたくさんいそう",lat:34.8005,lng:135.6385},// ~翠香園町
-  {id:20,cat:"公園",name:"南中振公園",address:"枚方市南中振2丁目76-1",memo:"—",lat:34.7942918,lng:135.6289814},// ✓
-  {id:21,cat:"個人宅",name:"○○さま（翠香園町）",address:"枚方市翠香園町18-1",memo:"一軒家。おこさまがいる",lat:34.8010,lng:135.6388},// ~翠香園町
-  {id:22,cat:"バス停",name:"送迎後のママたち（南中振）",address:"枚方市南中振2丁目84-3",memo:"送迎後のママたち",lat:34.7942,lng:135.6292},// ~南中振公園付近
-  {id:23,cat:"公園",name:"翠香園ふれあい公園",address:"枚方市翠香園町8-5",memo:"—",lat:34.7998588,lng:135.6367185},// ✓
-  {id:24,cat:"住宅地",name:"ルネヒューマンズガーデン枚方",address:"枚方市出口1丁目2-16",memo:"幼稚園送り後のママいる",lat:34.8017758,lng:135.6304254},// ✓
-  {id:25,cat:"バス停",name:"ひらかたパーク",address:"枚方市枚方公園町1-1",memo:"朝8:27、帰り2:45、みどりバス",lat:34.8059896,lng:135.6392002},// ✓
-  {id:26,cat:"バス停",name:"伊加賀西町北公園",address:"枚方市伊加賀西町56",memo:"朝8:44、帰り2:56、赤バス。新築あり",lat:34.8070542,lng:135.6252535},// ✓
-  {id:27,cat:"バス停",name:"出口ふれあい公園",address:"枚方市出口2丁目1-18",memo:"朝8:55、帰り3:07、赤バス",lat:34.8031595,lng:135.6268292},// ✓
-  {id:28,cat:"個人宅",name:"○○さま（伊加賀栄町）",address:"枚方市伊加賀栄町17-17-2",memo:"半年前の新築。1-2歳の子ども",lat:34.8058,lng:135.6348},// ~伊加賀栄町
-  {id:29,cat:"住宅地",name:"伊加賀栄町23のブロック",address:"枚方市伊加賀栄町23",memo:"新しいおうちが多く子どもがいっぱい",lat:34.8060,lng:135.6352},// ~伊加賀栄町
-  {id:30,cat:"公園",name:"伊加賀栄公園",address:"枚方市伊加賀栄町9",memo:"アプロの前",lat:34.8058571,lng:135.6353890},// ✓
-  {id:31,cat:"店舗",name:"コノミヤ 枚方店",address:"枚方市伊加賀緑町1-15",memo:"月曜日10%オフ",lat:34.8086202,lng:135.6329772},// ✓
+var SPOTS = [
+  {id:1, cat:"施設",name:"さだ図書館",address:"枚方市北中振3丁目27-10",memo:"おはなし会 第1・3水曜 11:00〜11:30",lat:34.7970018,lng:135.6286531},
+  {id:2, cat:"公園",name:"高塚町中央公園",address:"枚方市高塚町30",memo:"パルコープの裏。子どもとママ",lat:34.8065389,lng:135.6431078},
+  {id:3, cat:"施設",name:"伊加賀西町会館",address:"枚方市伊加賀西町71-11",memo:"子育てサロン 10:00〜11:30",lat:34.8064683,lng:135.6298291},
+  {id:4, cat:"個人宅",name:"南さま",address:"枚方市枚方上之町9-35",memo:"午前中ママと花の水やり",lat:34.8100306,lng:135.6442064},
+  {id:5, cat:"公園",name:"伊加賀栄町公園",address:"枚方市伊加賀栄町9",memo:"子どもとママが遊びに来てる",lat:34.8058571,lng:135.635389},
+  {id:6, cat:"公園",name:"伊加賀公園(堤町)",address:"枚方市堤町7",memo:"子どもとママが遊びに来てる",lat:34.8113921,lng:135.6376781},
+  {id:7, cat:"住宅地",name:"ヒルズシティ付近",address:"枚方市高塚町30-1",memo:"わんちゃん散歩の方が多い",lat:34.8072396,lng:135.6434369},
+  {id:8, cat:"公園",name:"オーパスの横の公園",address:"枚方市高塚町30-25",memo:"送迎バスの時間帯 ママさんが多い",lat:34.8056895,lng:135.6435107},
+  {id:9, cat:"店舗",name:"西松屋",address:"枚方市伊加賀南町2-50",memo:"子ども連れが多い",lat:34.8090969,lng:135.638914},
+  {id:10,cat:"住宅地",name:"出口4丁目22のブロック",address:"枚方市出口4丁目22",memo:"お子さまのいる家庭が何軒かある",lat:34.800188,lng:135.6223397},
+  {id:11,cat:"住宅地",name:"出口4丁目38のブロック",address:"枚方市出口4丁目38",memo:"お子さまのいる家庭が何軒かある",lat:34.7997373,lng:135.6233524},
+  {id:12,cat:"施設",name:"子育てサロンさくらんぼ",address:"枚方市出口6丁目20",memo:"9:45〜11:30 手遊び・制作",lat:34.796314,lng:135.620744},
+  {id:13,cat:"住宅地",name:"出口5丁目25のブロック",address:"枚方市出口5丁目25",memo:"新築6軒、お子さまのいる家庭あり",lat:34.7974786,lng:135.6255055},
+  {id:14,cat:"住宅地",name:"ファインシティ枚方",address:"枚方市出口1丁目3-10",memo:"9:10頃 幼稚園バス送り",lat:34.8031746,lng:135.6279569},
+  {id:15,cat:"施設",name:"光善寺保育園（ぱんだっこ）",address:"枚方市出口4丁目36-5",memo:"地域開放 10〜12時 入退室自由",lat:34.7991257,lng:135.6224622},
+  {id:16,cat:"店舗",name:"セブンの向かい",address:"枚方市出口2丁目24-7",memo:"9:15頃 子連れのお母さんがおしゃべり",lat:34.8026906,lng:135.6217601},
+  {id:17,cat:"バス停",name:"パークオアシス",address:"枚方市出口1丁目17-1",memo:"9:10頃 幼稚園バス送り",lat:34.8023856,lng:135.6281884},
+  {id:18,cat:"住宅地",name:"香里ケ丘ウエストヒルズ付近",address:"枚方市東中振1丁目34-3",memo:"周辺に新しい住宅地もある",lat:34.7956468,lng:135.6451374},
+  {id:19,cat:"住宅地",name:"子どもが多い住宅地",address:"枚方市翠香園町24",memo:"子どもがたくさんいそう",lat:34.8007,lng:135.6395},
+  {id:20,cat:"公園",name:"南中振公園",address:"枚方市南中振2丁目76-1",memo:"—",lat:34.7942918,lng:135.6289814},
+  {id:21,cat:"個人宅",name:"○○さま（翠香園町）",address:"枚方市翠香園町18-1",memo:"一軒家。おこさまがいる",lat:34.8007931,lng:135.6379528},
+  {id:22,cat:"バス停",name:"送迎後のママたち（南中振）",address:"枚方市南中振2丁目84-3",memo:"送迎後のママたち",lat:34.7944971,lng:135.6281546},
+  {id:23,cat:"公園",name:"翠香園ふれあい公園",address:"枚方市翠香園町8-5",memo:"—",lat:34.7998588,lng:135.6367185},
+  {id:24,cat:"住宅地",name:"ルネヒューマンズガーデン枚方",address:"枚方市出口1丁目2-16",memo:"幼稚園送り後のママいる",lat:34.8017758,lng:135.6304254},
+  {id:25,cat:"バス停",name:"ひらかたパーク",address:"枚方市枚方公園町1-1",memo:"朝8:27、帰り2:45、みどりバス",lat:34.8059896,lng:135.6392002},
+  {id:26,cat:"バス停",name:"伊加賀西町北公園",address:"枚方市伊加賀西町56",memo:"朝8:44、帰り2:56、赤バス。新築あり",lat:34.8070542,lng:135.6252535},
+  {id:27,cat:"バス停",name:"出口ふれあい公園",address:"枚方市出口2丁目1-18",memo:"朝8:55、帰り3:07、赤バス",lat:34.8031595,lng:135.6268292},
+  {id:28,cat:"個人宅",name:"○○さま（伊加賀栄町）",address:"枚方市伊加賀栄町17-17-2",memo:"半年前の新築。1-2歳の子ども",lat:34.8056,lng:135.634},
+  {id:29,cat:"住宅地",name:"伊加賀栄町23のブロック",address:"枚方市伊加賀栄町23",memo:"新しいおうちが多く子どもがいっぱい",lat:34.8058,lng:135.6352},
+  {id:30,cat:"公園",name:"伊加賀栄公園",address:"枚方市伊加賀栄町9",memo:"アプロの前",lat:34.8058571,lng:135.635389},
+  {id:31,cat:"店舗",name:"コノミヤ 枚方店",address:"枚方市伊加賀緑町1-15",memo:"月曜日10%オフ",lat:34.8086202,lng:135.6329772}
 ];
 
-const CAT_ICON = {"公園":"🌳","施設":"🏛️","店舗":"🛒","住宅地":"🏘️","個人宅":"🏠","バス停":"🚌"};
+var CAT_ICON = {"公園":"🌳","施設":"🏛️","店舗":"🛒","住宅地":"🏘️","個人宅":"🏠","バス停":"🚌"};
 
 // ━━━ State ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-let myPos = null;
-let expandedId = null;
+var myPos = null;
+var expandedId = null;
 
 // ━━━ Haversine (km) ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 function haversine(lat1, lng1, lat2, lng2) {
-  const R = 6371;
-  const dLat = (lat2 - lat1) * Math.PI / 180;
-  const dLng = (lng2 - lng1) * Math.PI / 180;
-  const a = Math.sin(dLat/2)**2 + Math.cos(lat1*Math.PI/180)*Math.cos(lat2*Math.PI/180)*Math.sin(dLng/2)**2;
+  var R = 6371;
+  var dLat = (lat2 - lat1) * Math.PI / 180;
+  var dLng = (lng2 - lng1) * Math.PI / 180;
+  var a = Math.sin(dLat/2)*Math.sin(dLat/2) + Math.cos(lat1*Math.PI/180)*Math.cos(lat2*Math.PI/180)*Math.sin(dLng/2)*Math.sin(dLng/2);
   return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
 }
-function fmtDist(km) { return km < 1 ? Math.round(km*1000)+'m' : km.toFixed(1)+'km'; }
 
-// ━━━ Google Maps URLs（住所ベース → 正確） ━━━━━━━━━━━━━━
+function fmtDist(km) {
+  return km < 1 ? Math.round(km * 1000) + 'm' : km.toFixed(1) + 'km';
+}
+
+// ━━━ 最近傍法（Nearest Neighbor）ルート順序 ━━━━━━━━━━━━━━
+// 現在地→最も近いA地点→Aから最も近いB地点→Bから最も近いC…
+function nearestNeighborSort(spots, startLat, startLng) {
+  var result = [];
+  var remaining = [];
+  var i, j, nearestIdx, nearestDist, d, next;
+
+  for (i = 0; i < spots.length; i++) {
+    remaining.push({
+      id: spots[i].id,
+      cat: spots[i].cat,
+      name: spots[i].name,
+      address: spots[i].address,
+      memo: spots[i].memo,
+      lat: spots[i].lat,
+      lng: spots[i].lng
+    });
+  }
+
+  var curLat = startLat;
+  var curLng = startLng;
+
+  while (remaining.length > 0) {
+    nearestIdx = 0;
+    nearestDist = Infinity;
+    for (j = 0; j < remaining.length; j++) {
+      d = haversine(curLat, curLng, remaining[j].lat, remaining[j].lng);
+      if (d < nearestDist) {
+        nearestDist = d;
+        nearestIdx = j;
+      }
+    }
+    next = remaining.splice(nearestIdx, 1)[0];
+    next.routeDist = nearestDist;
+    next.originDist = haversine(startLat, startLng, next.lat, next.lng);
+    result.push(next);
+    curLat = next.lat;
+    curLng = next.lng;
+  }
+  return result;
+}
+
+// ━━━ Google Maps URLs（住所ベース＝オレンジピン表示） ━━━━━━
 function mapUrl(spot) {
   return 'https://www.google.com/maps/search/?api=1&query=' + encodeURIComponent(spot.address);
 }
+
 function singleNavUrl(spot) {
   if (!myPos) return mapUrl(spot);
-  return `https://www.google.com/maps/dir/${myPos.lat},${myPos.lng}/${encodeURIComponent(spot.address)}?travelmode=walking`;
+  return 'https://www.google.com/maps/dir/?api=1'
+    + '&origin=' + myPos.lat + ',' + myPos.lng
+    + '&destination=' + encodeURIComponent(spot.address)
+    + '&travelmode=walking';
 }
+
 function multiNavUrl(spots) {
   if (!myPos || !spots.length) return '#';
-  const limited = spots.slice(0, 10);
-  // パス形式：/maps/dir/地点1/地点2/... → ピン表示＋安定動作
-  const parts = [
-    `${myPos.lat},${myPos.lng}`,
-    ...limited.map(s => encodeURIComponent(s.address))
-  ];
-  return `https://www.google.com/maps/dir/` + parts.join('/') + `?travelmode=walking`;
+  var limited = spots.slice(0, 10);
+  var dest = limited[limited.length - 1];
+  var wps = limited.slice(0, -1);
+  var url = 'https://www.google.com/maps/dir/?api=1'
+    + '&origin=' + myPos.lat + ',' + myPos.lng
+    + '&destination=' + encodeURIComponent(dest.address)
+    + '&travelmode=walking';
+  if (wps.length > 0) {
+    var wpAddrs = [];
+    for (var i = 0; i < wps.length; i++) {
+      wpAddrs.push(encodeURIComponent(wps[i].address));
+    }
+    url += '&waypoints=' + wpAddrs.join('%7C');
+  }
+  return url;
 }
 
 // ━━━ Location ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
@@ -265,19 +293,19 @@ function getLocation() {
     showMsg('err', 'この端末では位置情報を利用できません');
     return;
   }
-  const btn = document.getElementById('locBtn');
+  var btn = document.getElementById('locBtn');
   btn.disabled = true;
   btn.innerHTML = '<span class="spinner">⟳</span> 取得中...';
 
   navigator.geolocation.getCurrentPosition(
-    pos => {
+    function(pos) {
       myPos = { lat: pos.coords.latitude, lng: pos.coords.longitude };
       btn.disabled = false;
       btn.textContent = '現在地を更新して再計算';
       showMsg('ok', '✓ 現在地を取得しました');
       render();
     },
-    err => {
+    function(err) {
       btn.disabled = false;
       btn.textContent = '現在地を取得して近い順に並べる';
       showMsg('err', err.code === 1 ? '位置情報の許可が必要です' : '位置情報を取得できませんでした');
@@ -287,66 +315,62 @@ function getLocation() {
 }
 
 function showMsg(type, text) {
-  document.getElementById('msg').innerHTML = `<div class="msg msg-${type}">${text}</div>`;
+  document.getElementById('msg').innerHTML = '<div class="msg msg-' + type + '">' + text + '</div>';
 }
 
 // ━━━ Render ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 function render() {
-  let spots = SPOTS.map(s => ({
-    ...s,
-    dist: myPos ? haversine(myPos.lat, myPos.lng, s.lat, s.lng) : null
-  }));
-  if (myPos) spots.sort((a, b) => a.dist - b.dist);
-
-  // Nav button（上位9件まで：Google Maps経由地上限）
-  const navBtn = document.getElementById('navBtn');
-  if (myPos) {
-    const navSpots = spots.slice(0, 10);
-    navBtn.href = multiNavUrl(navSpots);
-    navBtn.textContent = `🗺️ Googleマップでナビ開始（近い順${navSpots.length}件）`;
-    navBtn.classList.remove('hidden');
-  }
-
-  // List - only show after location is retrieved
   if (!myPos) {
     document.getElementById('list').innerHTML = '';
     return;
   }
-  document.getElementById('list').innerHTML = spots.map((s, i) => {
-    const exp = expandedId === s.id;
-    return `
-      <div class="item">
-        <div class="item-main" onclick="toggle(${s.id})">
-          ${myPos ? `<div class="item-rank">${i+1}</div>` : ''}
-          <div class="item-body">
-            <div class="item-top">
-              <span class="item-cat cat-${s.cat}">${CAT_ICON[s.cat]} ${s.cat}</span>
-              ${s.dist !== null ? `<span class="item-dist">${fmtDist(s.dist)}</span>` : ''}
-            </div>
-            <div class="item-name">${s.name}</div>
-            <div class="item-memo">${s.memo}</div>
-          </div>
-          <div class="item-arrow">${exp ? '▲' : '▼'}</div>
-        </div>
-        ${exp ? `
-          <div class="item-detail">
-            <div class="item-addr">📮 ${s.address}</div>
-            <div class="item-actions">
-              <a class="action-btn bg-green" href="${mapUrl(s)}" target="_blank">📍 マップで見る</a>
-              ${myPos ? `<a class="action-btn bg-blue" href="${singleNavUrl(s)}" target="_blank">🧭 ナビ開始</a>` : ''}
-            </div>
-          </div>
-        ` : ''}
-      </div>`;
-  }).join('');
+
+  var sorted = nearestNeighborSort(SPOTS, myPos.lat, myPos.lng);
+
+  // Nav button
+  var navBtn = document.getElementById('navBtn');
+  var navSpots = sorted.slice(0, 10);
+  navBtn.href = multiNavUrl(navSpots);
+  navBtn.textContent = '🗺️ Googleマップでナビ開始（ルート順10件）';
+  navBtn.classList.remove('hidden');
+
+  // List
+  var html = '';
+  for (var i = 0; i < sorted.length; i++) {
+    var s = sorted[i];
+    var exp = (expandedId === s.id);
+    html += '<div class="item">';
+    html +=   '<div class="item-main" onclick="toggle(' + s.id + ')">';
+    html +=     '<div class="item-rank">' + (i + 1) + '</div>';
+    html +=     '<div class="item-body">';
+    html +=       '<div class="item-top">';
+    html +=         '<span class="item-cat cat-' + s.cat + '">' + CAT_ICON[s.cat] + ' ' + s.cat + '</span>';
+    html +=         '<span class="item-dist">' + fmtDist(s.originDist) + '</span>';
+    html +=       '</div>';
+    html +=       '<div class="item-name">' + s.name + '</div>';
+    html +=       '<div class="item-memo">' + s.memo + '</div>';
+    html +=     '</div>';
+    html +=     '<div class="item-arrow">' + (exp ? '▲' : '▼') + '</div>';
+    html +=   '</div>';
+    if (exp) {
+      html += '<div class="item-detail">';
+      html +=   '<div class="item-addr">📮 ' + s.address + '</div>';
+      html +=   '<div class="item-actions">';
+      html +=     '<a class="action-btn bg-green" href="' + mapUrl(s) + '" target="_blank">📍 マップで見る</a>';
+      html +=     '<a class="action-btn bg-blue" href="' + singleNavUrl(s) + '" target="_blank">🧭 ナビ開始</a>';
+      html +=   '</div>';
+      html += '</div>';
+    }
+    html += '</div>';
+  }
+  document.getElementById('list').innerHTML = html;
 }
 
 function toggle(id) {
-  expandedId = expandedId === id ? null : id;
+  expandedId = (expandedId === id) ? null : id;
   render();
 }
 
-// ━━━ Init ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 render();
 </script>
 </body>
