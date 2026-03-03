@@ -246,18 +246,17 @@ function mapUrl(spot) {
 }
 function singleNavUrl(spot) {
   if (!myPos) return mapUrl(spot);
-  return `https://www.google.com/maps/dir/?api=1&origin=${myPos.lat},${myPos.lng}&destination=${spot.lat},${spot.lng}&travelmode=walking`;
+  return `https://www.google.com/maps/dir/${myPos.lat},${myPos.lng}/${encodeURIComponent(spot.address)}?travelmode=walking`;
 }
 function multiNavUrl(spots) {
   if (!myPos || !spots.length) return '#';
   const limited = spots.slice(0, 10);
-  const dest = limited[limited.length - 1];
-  const waypoints = limited.slice(0, -1);
-  let url = `https://www.google.com/maps/dir/?api=1&origin=${myPos.lat},${myPos.lng}&destination=${dest.lat},${dest.lng}&travelmode=walking`;
-  if (waypoints.length > 0) {
-    url += '&waypoints=' + waypoints.map(s => `${s.lat},${s.lng}`).join('%7C');
-  }
-  return url;
+  // パス形式：/maps/dir/地点1/地点2/... → ピン表示＋安定動作
+  const parts = [
+    `${myPos.lat},${myPos.lng}`,
+    ...limited.map(s => encodeURIComponent(s.address))
+  ];
+  return `https://www.google.com/maps/dir/` + parts.join('/') + `?travelmode=walking`;
 }
 
 // ━━━ Location ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
