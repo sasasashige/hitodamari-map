@@ -250,12 +250,14 @@ function singleNavUrl(spot) {
 }
 function multiNavUrl(spots) {
   if (!myPos || !spots.length) return '#';
-  // Google Mapsアプリ向け：直接URLスキームで経由地指定
-  // 最大5件に絞る（アプリの安定動作のため）
-  const limited = spots.slice(0, 5);
-  const coords = limited.map(s => `${s.lat},${s.lng}`);
-  // google.com/maps/dir/ 形式：スラッシュ区切りで地点を列挙
-  return `https://www.google.com/maps/dir/${myPos.lat},${myPos.lng}/` + coords.join('/') + `/@${myPos.lat},${myPos.lng},15z/data=!4m2!4m1!3e2`;
+  const limited = spots.slice(0, 10);
+  const dest = limited[limited.length - 1];
+  const waypoints = limited.slice(0, -1);
+  let url = `https://www.google.com/maps/dir/?api=1&origin=${myPos.lat},${myPos.lng}&destination=${dest.lat},${dest.lng}&travelmode=walking`;
+  if (waypoints.length > 0) {
+    url += '&waypoints=' + waypoints.map(s => `${s.lat},${s.lng}`).join('%7C');
+  }
+  return url;
 }
 
 // ━━━ Location ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
@@ -300,7 +302,7 @@ function render() {
   // Nav button（上位9件まで：Google Maps経由地上限）
   const navBtn = document.getElementById('navBtn');
   if (myPos) {
-    const navSpots = spots.slice(0, 5);
+    const navSpots = spots.slice(0, 10);
     navBtn.href = multiNavUrl(navSpots);
     navBtn.textContent = `🗺️ Googleマップでナビ開始（近い順${navSpots.length}件）`;
     navBtn.classList.remove('hidden');
