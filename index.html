@@ -2,617 +2,445 @@
 <html lang="ja">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-<meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<title>人だまりマップ - 光善寺センター</title>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700&display=swap" rel="stylesheet">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>人だまりルートプランナー</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700&family=DM+Mono:wght@500&display=swap" rel="stylesheet">
 <style>
-*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  :root {
+    --green: #2d6a4f;
+    --green2: #52b788;
+    --light: #d8f3dc;
+    --bg: #f4f3ef;
+    --white: #ffffff;
+    --text: #1a1a1a;
+    --text2: #666;
+    --border: #e0ddd6;
+    --orange: #e76f51;
+    --radius: 10px;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'Noto Sans JP', sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; }
 
-body {
-  font-family: 'Noto Sans JP', sans-serif;
-  background: #f0f4f8;
-  color: #1e293b;
-  min-height: 100vh;
-  -webkit-text-size-adjust: 100%;
-}
+  header {
+    background: var(--green);
+    color: white;
+    padding: 14px 20px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+  header h1 { font-size: 1rem; font-weight: 700; }
+  header .sub { font-size: 0.72rem; opacity: 0.75; margin-top: 2px; }
 
-.app {
-  max-width: 480px;
-  margin: 0 auto;
-  min-height: 100vh;
-}
+  .container { max-width: 600px; margin: 0 auto; padding: 16px; }
 
-/* ─── Header ─── */
-.header {
-  background: linear-gradient(135deg, #1e293b 0%, #334155 100%);
-  color: #fff;
-  padding: 20px 16px 16px;
-  position: sticky;
-  top: 0;
-  z-index: 100;
-  box-shadow: 0 4px 20px rgba(0,0,0,0.15);
-}
-.header-inner {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-}
-.header-left {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
-.header-icon { font-size: 22px; }
-.header h1 {
-  font-size: 18px;
-  font-weight: 700;
-  letter-spacing: 0.02em;
-}
-.header-sub {
-  font-size: 11px;
-  opacity: 0.7;
-  margin-top: 2px;
-}
-.badge {
-  background: rgba(255,255,255,0.15);
-  padding: 4px 12px;
-  border-radius: 20px;
-  font-size: 13px;
-  font-weight: 500;
-  backdrop-filter: blur(4px);
-}
+  /* ステータスカード */
+  .status-card {
+    background: var(--white);
+    border-radius: var(--radius);
+    padding: 16px;
+    margin-bottom: 16px;
+    border: 1.5px solid var(--border);
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+  .status-icon { font-size: 1.6rem; flex-shrink: 0; }
+  .status-text { flex: 1; }
+  .status-text .title { font-size: 0.85rem; font-weight: 700; }
+  .status-text .desc { font-size: 0.75rem; color: var(--text2); margin-top: 2px; }
 
-/* ─── Body ─── */
-.body { padding: 0 12px 32px; }
-.section { margin-top: 14px; }
+  /* ボタン */
+  .btn {
+    width: 100%;
+    padding: 13px;
+    border: none;
+    border-radius: var(--radius);
+    font-size: 0.9rem;
+    font-weight: 700;
+    font-family: inherit;
+    cursor: pointer;
+    transition: all 0.2s;
+    margin-bottom: 10px;
+  }
+  .btn-primary { background: var(--green); color: white; }
+  .btn-primary:hover { background: #1e4d38; }
+  .btn-primary:disabled { opacity: 0.4; cursor: not-allowed; }
+  .btn-orange { background: var(--orange); color: white; }
+  .btn-orange:hover { background: #c85a3e; }
+  .btn-orange:disabled { opacity: 0.4; cursor: not-allowed; }
 
-/* ─── Location Button ─── */
-.loc-btn {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 8px;
-  width: 100%;
-  padding: 14px 16px;
-  border: none;
-  border-radius: 14px;
-  background: linear-gradient(135deg, #1e293b 0%, #475569 100%);
-  color: #fff;
-  font-size: 14px;
-  font-weight: 600;
-  font-family: 'Noto Sans JP', sans-serif;
-  cursor: pointer;
-  box-shadow: 0 4px 14px rgba(30,41,59,0.25);
-  transition: transform 0.15s, opacity 0.15s;
-  -webkit-tap-highlight-color: transparent;
-}
-.loc-btn:active { transform: scale(0.98); }
-.loc-btn:disabled { opacity: 0.7; }
-.loc-btn .icon { font-size: 18px; }
+  /* 件数フィルター */
+  .filter-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 14px;
+    background: var(--white);
+    border-radius: var(--radius);
+    padding: 12px 16px;
+    border: 1.5px solid var(--border);
+  }
+  .filter-row label { font-size: 0.82rem; font-weight: 700; color: var(--green); }
+  .filter-row input[type=range] { flex: 1; accent-color: var(--green); }
+  .filter-row .count-val {
+    font-family: 'DM Mono', monospace;
+    font-size: 0.9rem;
+    font-weight: 700;
+    color: var(--green);
+    min-width: 30px;
+    text-align: right;
+  }
 
-.spinner {
-  display: inline-block;
-  animation: spin 1s linear infinite;
-  font-size: 18px;
-}
+  /* スポットリスト */
+  .section-title {
+    font-size: 0.72rem;
+    font-weight: 700;
+    color: var(--green);
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    margin-bottom: 8px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .badge {
+    background: var(--light);
+    color: var(--green);
+    font-size: 0.68rem;
+    padding: 2px 7px;
+    border-radius: 99px;
+    font-weight: 700;
+  }
 
-.msg-error {
-  color: #dc2626; font-size: 12px; margin-top: 8px;
-  padding: 8px 12px; background: #fef2f2; border-radius: 8px;
-}
-.msg-ok {
-  color: #16a34a; font-size: 12px; margin-top: 8px;
-  padding: 8px 12px; background: #f0fdf4; border-radius: 8px;
-}
+  .spot-list { display: flex; flex-direction: column; gap: 8px; margin-bottom: 16px; }
+  .spot-item {
+    background: var(--white);
+    border-radius: var(--radius);
+    padding: 12px 14px;
+    border: 1.5px solid var(--border);
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    cursor: pointer;
+    transition: border-color 0.15s;
+  }
+  .spot-item:hover { border-color: var(--green2); }
+  .spot-rank {
+    min-width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    background: var(--green);
+    color: white;
+    font-size: 0.78rem;
+    font-weight: 700;
+    font-family: 'DM Mono', monospace;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    margin-top: 1px;
+  }
+  .spot-info { flex: 1; min-width: 0; }
+  .spot-name { font-size: 0.88rem; font-weight: 700; }
+  .spot-cat { font-size: 0.7rem; color: var(--green); font-weight: 700; margin-top: 1px; }
+  .spot-memo { font-size: 0.72rem; color: var(--text2); margin-top: 3px; line-height: 1.5; }
+  .spot-dist {
+    font-family: 'DM Mono', monospace;
+    font-size: 0.72rem;
+    color: var(--green);
+    font-weight: 700;
+    white-space: nowrap;
+    margin-top: 4px;
+  }
 
-/* ─── Category Filters ─── */
-.filter-row {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 6px;
-}
-.cat-chip {
-  padding: 6px 12px;
-  border-radius: 20px;
-  border: 1.5px solid #e2e8f0;
-  font-size: 12px;
-  font-weight: 500;
-  font-family: 'Noto Sans JP', sans-serif;
-  cursor: pointer;
-  white-space: nowrap;
-  transition: all 0.15s;
-  background: #f8fafc;
-  color: #94a3b8;
-  -webkit-tap-highlight-color: transparent;
-}
-.cat-chip.active {
-  border-color: var(--cat-color-40);
-  background: var(--cat-bg);
-  color: var(--cat-color);
-}
-.cat-chip.all-active {
-  background: #1e293b;
-  color: #fff;
-  border-color: #1e293b;
-}
+  /* ローディング */
+  .loading {
+    text-align: center;
+    padding: 32px;
+    color: var(--text2);
+    font-size: 0.85rem;
+  }
+  .spinner {
+    width: 32px;
+    height: 32px;
+    border: 3px solid var(--border);
+    border-top-color: var(--green);
+    border-radius: 50%;
+    animation: spin 0.8s linear infinite;
+    margin: 0 auto 12px;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
 
-/* ─── Slider ─── */
-.slider-row {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 6px;
-}
-.slider-label { font-size: 13px; font-weight: 500; color: #475569; }
-.slider-value { font-size: 14px; font-weight: 700; color: #1e293b; }
-
-input[type="range"] {
-  -webkit-appearance: none;
-  width: 100%;
-  height: 6px;
-  border-radius: 3px;
-  background: #e2e8f0;
-  outline: none;
-}
-input[type="range"]::-webkit-slider-thumb {
-  -webkit-appearance: none;
-  width: 28px; height: 28px;
-  border-radius: 50%;
-  background: #1e293b;
-  cursor: pointer;
-  box-shadow: 0 2px 6px rgba(0,0,0,0.2);
-}
-
-/* ─── Nav Button ─── */
-.nav-btn {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 8px;
-  width: 100%;
-  padding: 14px 16px;
-  border-radius: 14px;
-  background: linear-gradient(135deg, #2563eb 0%, #3b82f6 100%);
-  color: #fff;
-  font-size: 14px;
-  font-weight: 600;
-  text-decoration: none;
-  box-shadow: 0 4px 14px rgba(37,99,235,0.3);
-  -webkit-tap-highlight-color: transparent;
-}
-.nav-btn:active { transform: scale(0.98); }
-.nav-note {
-  font-size: 11px; color: #94a3b8;
-  margin-top: 6px; text-align: center;
-}
-
-/* ─── Card List ─── */
-.list {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-  margin-top: 14px;
-}
-
-.card {
-  background: #fff;
-  border-radius: 14px;
-  overflow: hidden;
-  box-shadow: 0 1px 4px rgba(0,0,0,0.06), 0 4px 12px rgba(0,0,0,0.04);
-  border-left: 4px solid var(--cat-color);
-  animation: fadeSlideIn 0.3s ease both;
-}
-
-.card-main {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 14px 14px 14px 12px;
-  cursor: pointer;
-  -webkit-tap-highlight-color: transparent;
-}
-.card-left {
-  display: flex;
-  align-items: flex-start;
-  gap: 10px;
-  flex: 1;
-  min-width: 0;
-}
-.rank {
-  min-width: 28px; height: 28px;
-  display: flex; align-items: center; justify-content: center;
-  background: #f1f5f9; border-radius: 8px; flex-shrink: 0;
-}
-.rank-num { font-size: 13px; font-weight: 700; color: #475569; }
-
-.card-info { flex: 1; min-width: 0; }
-.card-header {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  margin-bottom: 4px;
-}
-.cat-tag {
-  font-size: 11px; font-weight: 600;
-  padding: 2px 8px; border-radius: 6px;
-  white-space: nowrap;
-  background: var(--cat-bg);
-  color: var(--cat-color);
-}
-.dist {
-  font-size: 12px; font-weight: 600; color: #64748b;
-}
-.spot-name {
-  font-size: 14px; font-weight: 600;
-  line-height: 1.4;
-  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
-}
-.memo {
-  font-size: 12px; color: #64748b;
-  margin-top: 3px; line-height: 1.4;
-  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
-}
-.chevron {
-  font-size: 10px; color: #94a3b8;
-  margin-left: 8px; flex-shrink: 0;
-  transition: transform 0.2s;
-}
-
-.card-expanded {
-  padding: 0 14px 14px;
-  border-top: 1px solid #f1f5f9;
-  animation: fadeIn 0.2s ease;
-}
-.address {
-  font-size: 12px; color: #475569;
-  margin: 10px 0; line-height: 1.5;
-}
-.card-actions {
-  display: flex; gap: 8px;
-}
-.action-btn {
-  flex: 1;
-  display: flex; align-items: center; justify-content: center;
-  gap: 4px;
-  padding: 10px 12px;
-  border-radius: 10px;
-  color: #fff;
-  font-size: 12px; font-weight: 600;
-  text-decoration: none;
-  -webkit-tap-highlight-color: transparent;
-}
-.action-btn.green { background: #16a34a; }
-.action-btn.blue { background: #1d4ed8; }
-.action-btn:active { transform: scale(0.97); }
-
-.empty {
-  text-align: center;
-  padding: 40px 20px;
-  color: #94a3b8;
-}
-.reset-btn {
-  margin-top: 12px;
-  padding: 8px 20px;
-  border: 1.5px solid #e2e8f0;
-  border-radius: 10px;
-  background: #fff;
-  color: #475569;
-  font-size: 13px;
-  font-family: 'Noto Sans JP', sans-serif;
-  cursor: pointer;
-}
-
-.hidden { display: none !important; }
-
-@keyframes fadeSlideIn {
-  from { opacity: 0; transform: translateY(12px); }
-  to { opacity: 1; transform: translateY(0); }
-}
-@keyframes fadeIn {
-  from { opacity: 0; }
-  to { opacity: 1; }
-}
-@keyframes spin {
-  from { transform: rotate(0deg); }
-  to { transform: rotate(360deg); }
-}
+  .note { font-size: 0.72rem; color: #999; text-align: center; margin-top: 6px; line-height: 1.6; }
+  .error { background: #fff3f0; border: 1.5px solid #fca99a; border-radius: var(--radius); padding: 12px 14px; font-size: 0.82rem; color: #c0392b; margin-bottom: 12px; }
 </style>
 </head>
 <body>
 
-<div class="app">
-  <!-- Header -->
-  <div class="header">
-    <div class="header-inner">
-      <div class="header-left">
-        <span class="header-icon">📍</span>
-        <div>
-          <h1>人だまりマップ</h1>
-          <div class="header-sub">光善寺センター</div>
-        </div>
-      </div>
-      <div class="badge" id="countBadge">31件</div>
+<header>
+  <div>
+    <h1>📍 人だまりルートプランナー</h1>
+    <div class="sub">現在地から近い順にスポットを表示</div>
+  </div>
+</header>
+
+<div class="container">
+
+  <!-- ステータス：現在地 -->
+  <div class="status-card" id="geoStatus">
+    <div class="status-icon">📡</div>
+    <div class="status-text">
+      <div class="title">現在地を取得していません</div>
+      <div class="desc">下のボタンを押して開始してください</div>
     </div>
   </div>
 
-  <div class="body">
-    <!-- Location -->
-    <div class="section">
-      <button class="loc-btn" id="locBtn" onclick="getLocation()">
-        <span class="icon">📡</span>
-        <span id="locBtnText">現在地を取得して近い順に並べる</span>
-      </button>
-      <div id="locMsg"></div>
-    </div>
-
-    <!-- Category Filters -->
-    <div class="section">
-      <div class="filter-row" id="filterRow"></div>
-    </div>
-
-    <!-- Slider -->
-    <div class="section">
-      <div class="slider-row">
-        <span class="slider-label">表示件数</span>
-        <span class="slider-value" id="sliderValue">10件</span>
-      </div>
-      <input type="range" min="5" max="31" value="10" id="slider" oninput="onSliderChange(this.value)">
-    </div>
-
-    <!-- Nav Button -->
-    <div class="section hidden" id="navSection">
-      <a class="nav-btn" id="navBtn" href="#" target="_blank" rel="noopener noreferrer">
-        <span>🗺️</span>
-        <span id="navBtnText">Googleマップでナビ開始</span>
-      </a>
-      <div class="nav-note hidden" id="navNote">※ Googleマップの経由地上限のため上位10件でルートを作成</div>
-    </div>
-
-    <!-- Spot List -->
-    <div class="list" id="spotList"></div>
-
-    <!-- Empty State -->
-    <div class="empty hidden" id="emptyState">
-      <p>該当するスポットがありません</p>
-      <button class="reset-btn" onclick="selectAllCats()">フィルターをリセット</button>
+  <!-- ステータス：データ読み込み -->
+  <div class="status-card" id="dataStatus">
+    <div class="status-icon">🗂️</div>
+    <div class="status-text">
+      <div class="title">スポットデータ：31件</div>
+      <div class="desc">住所情報から位置を計算します</div>
     </div>
   </div>
+
+  <div id="errorBox"></div>
+
+  <!-- メインボタン -->
+  <button class="btn btn-primary" id="startBtn" onclick="start()">
+    📍 現在地を取得して近い順に並べる
+  </button>
+
+  <!-- 件数フィルター（取得後に表示） -->
+  <div class="filter-row" id="filterRow" style="display:none;">
+    <label>表示件数</label>
+    <input type="range" min="5" max="31" value="10" id="countSlider" oninput="updateCount()">
+    <div class="count-val" id="countVal">10</div>
+  </div>
+
+  <!-- リスト -->
+  <div id="spotListArea"></div>
+
+  <!-- ナビボタン -->
+  <button class="btn btn-orange" id="navBtn" onclick="openMaps()" style="display:none;" disabled>
+    🗺 Googleマップでナビ開始（上位10件）
+  </button>
+  <div class="note" id="navNote" style="display:none;">出発地：現在地 → 近い順に最大9件を経由</div>
+
 </div>
 
 <script>
-// ━━━ Spot Data (pre-geocoded) ━━━━━━━━━━━━━━━━━━━━━━━━━━━
-const SPOTS = [
-  {id:1,cat:"施設",name:"さだ図書館",address:"枚方市北中振3丁目27-10",memo:"おはなし会 第1・3水曜 11:00〜11:30",lat:34.8118,lng:135.6478},
-  {id:2,cat:"公園",name:"高塚町中央公園",address:"枚方市高塚町30",memo:"パルコープの裏。子どもとママ",lat:34.8125,lng:135.6325},
-  {id:3,cat:"施設",name:"伊加賀西町会館",address:"枚方市伊加賀西町71-11",memo:"子育てサロン 10:00〜11:30",lat:34.8108,lng:135.6395},
-  {id:4,cat:"個人宅",name:"南さま",address:"枚方市枚方上之町9-35",memo:"午前中ママと花の水やり",lat:34.8155,lng:135.6498},
-  {id:5,cat:"公園",name:"伊加賀栄町公園",address:"枚方市伊加賀栄町9",memo:"子どもとママが遊びに来てる",lat:34.8098,lng:135.6412},
-  {id:6,cat:"公園",name:"伊加賀公園(堤町)",address:"枚方市堤町7",memo:"子どもとママが遊びに来てる",lat:34.8132,lng:135.6378},
-  {id:7,cat:"住宅地",name:"ヒルズシティ付近",address:"枚方市高塚町30-1",memo:"わんちゃん散歩の方が多い",lat:34.8127,lng:135.6322},
-  {id:8,cat:"公園",name:"オーパスの横の公園",address:"枚方市高塚町30-25",memo:"送迎バスの時間帯 ママさんが多い",lat:34.813,lng:135.6318},
-  {id:9,cat:"店舗",name:"西松屋",address:"枚方市伊加賀南町2-50",memo:"子ども連れが多い",lat:34.8082,lng:135.6402},
-  {id:10,cat:"住宅地",name:"出口4丁目22のブロック",address:"枚方市出口4丁目22",memo:"お子さまのいる家庭が何軒かある",lat:34.8058,lng:135.6348},
-  {id:11,cat:"住宅地",name:"出口4丁目38のブロック",address:"枚方市出口4丁目38",memo:"お子さまのいる家庭が何軒かある",lat:34.8052,lng:135.6342},
-  {id:12,cat:"施設",name:"子育てサロンさくらんぼ",address:"枚方市出口6丁目20",memo:"9:45〜11:30 手遊び・制作",lat:34.8042,lng:135.6362},
-  {id:13,cat:"住宅地",name:"出口5丁目25のブロック",address:"枚方市出口5丁目25",memo:"新築6軒、お子さまのいる家庭あり",lat:34.8048,lng:135.6355},
-  {id:14,cat:"住宅地",name:"ファインシティ枚方",address:"枚方市出口1丁目3-10",memo:"9:10頃 幼稚園バス送り",lat:34.8075,lng:135.6368},
-  {id:15,cat:"施設",name:"光善寺保育園（ぱんだっこ）",address:"枚方市出口4丁目36-5",memo:"地域開放 10〜12時 入退室自由",lat:34.8055,lng:135.6345},
-  {id:16,cat:"店舗",name:"セブンの向かい",address:"枚方市出口4丁目36-5",memo:"9:15頃 子連れのお母さんがおしゃべり",lat:34.8056,lng:135.6347},
-  {id:17,cat:"バス停",name:"パークオアシス",address:"枚方市出口1丁目17-1",memo:"9:10頃 幼稚園バス送り",lat:34.8072,lng:135.6372},
-  {id:18,cat:"住宅地",name:"香里ケ丘ウエストヒルズ付近",address:"枚方市東中振1丁目34-3",memo:"周辺に新しい住宅地もある",lat:34.8095,lng:135.6462},
-  {id:19,cat:"住宅地",name:"子どもが多い住宅地",address:"枚方市翠香園町24",memo:"子どもがたくさんいそう",lat:34.8085,lng:135.6488},
-  {id:20,cat:"公園",name:"南中振公園",address:"枚方市南中振2丁目76-1",memo:"—",lat:34.8068,lng:135.6455},
-  {id:21,cat:"個人宅",name:"○○さま（翠香園町）",address:"枚方市翠香園町18-1",memo:"一軒家。おこさまがいる",lat:34.8082,lng:135.6492},
-  {id:22,cat:"バス停",name:"送迎後のママたち（南中振）",address:"枚方市南中振2丁目84-3",memo:"送迎後のママたち",lat:34.8065,lng:135.6458},
-  {id:23,cat:"公園",name:"翠香園ふれあい公園",address:"枚方市翠香園町8-5",memo:"—",lat:34.8078,lng:135.6495},
-  {id:24,cat:"住宅地",name:"ルネヒューマンズガーデン枚方",address:"枚方市出口1丁目2-16",memo:"幼稚園送り後のママいる",lat:34.8078,lng:135.6365},
-  {id:25,cat:"バス停",name:"ひらかたパーク",address:"枚方市枚方公園町1-1",memo:"朝8:27、帰り2:45、みどりバス",lat:34.8128,lng:135.6438},
-  {id:26,cat:"バス停",name:"伊加賀西町北公園",address:"枚方市伊加賀西町56",memo:"朝8:44、帰り2:56、赤バス。新築あり",lat:34.8112,lng:135.6388},
-  {id:27,cat:"バス停",name:"出口ふれあい公園",address:"枚方市出口2丁目1-18",memo:"朝8:55、帰り3:07、赤バス",lat:34.8068,lng:135.6358},
-  {id:28,cat:"個人宅",name:"○○さま（伊加賀栄町）",address:"枚方市伊加賀栄町17-17-2",memo:"半年前の新築。1-2歳の子ども",lat:34.8095,lng:135.6418},
-  {id:29,cat:"住宅地",name:"伊加賀栄町23のブロック",address:"枚方市伊加賀栄町23",memo:"新しいおうちが多く子どもがいっぱい",lat:34.8092,lng:135.6422},
-  {id:30,cat:"公園",name:"伊加賀栄公園",address:"枚方市伊加賀栄町9",memo:"アプロの前",lat:34.81,lng:135.641},
-  {id:31,cat:"店舗",name:"コノミヤ 枚方店",address:"枚方市伊加賀緑町1-15",memo:"月曜日10%オフ",lat:34.8088,lng:135.6428},
+// ========== スポットデータ ==========
+const RAW_SPOTS = [
+  { name: '[施設] さだ図書館', address: '大阪府枚方市北中振3丁目27-10', memo: 'おはなし会（乳幼児向け）。第1・3水曜日 11:00〜11:30' },
+  { name: '[公園] 高塚町中央公園', address: '大阪府枚方市高塚町30', memo: 'パルコープの裏。小さい子どもとママが遊びに来てる' },
+  { name: '[施設] 伊加賀西町会館', address: '大阪府枚方市伊加賀西町71-11', memo: '子育てサロン（未就園児対象） 10:00〜11:30' },
+  { name: '[個人宅] 南さま', address: '大阪府枚方市枚方上之町9-35', memo: '住所違うかも。午前中お子さんとママが花の水やりしてた' },
+  { name: '[公園] 伊加賀栄町公園', address: '大阪府枚方市伊加賀栄町9', memo: '子どもとママが遊びに来てる' },
+  { name: '[公園] 伊加賀公園(堤町)', address: '大阪府枚方市堤町7', memo: '子どもとママが遊びに来てる' },
+  { name: '[住宅地] ヒルズシティ付近', address: '大阪府枚方市高塚町30-1', memo: 'わんちゃん散歩の方が多い' },
+  { name: '[公園] オーパスの横の公園', address: '大阪府枚方市高塚町30-25', memo: '送迎バスの時間帯 ママさんが多い' },
+  { name: '[店舗] 西松屋', address: '大阪府枚方市伊加賀南町2-50', memo: '子ども連れが多い' },
+  { name: '[住宅地] 出口4丁目22のブロック', address: '大阪府枚方市出口4丁目22', memo: 'お子さまのいる家庭が何軒かある' },
+  { name: '[住宅地] 出口4丁目38のブロック', address: '大阪府枚方市出口4丁目38', memo: 'お子さまのいる家庭が何軒かある' },
+  { name: '[施設] 子育てサロンさくらんぼ・さだ西臨時保育室', address: '大阪府枚方市出口6丁目20', memo: '3/10(火) 9:45〜11:30 手遊び・制作' },
+  { name: '[住宅地] 出口5丁目25のブロック', address: '大阪府枚方市出口5丁目25', memo: '新築が6軒うち何軒かはお子さまがいるようです' },
+  { name: '[住宅地] ファインシティ枚方', address: '大阪府枚方市出口1丁目3-10', memo: '9:10頃 幼稚園バス送り' },
+  { name: '[施設] 光善寺保育園（ぱんだっこ）', address: '大阪府枚方市出口4丁目36-5', memo: '地域開放している遊び場 10〜12時 入退室自由' },
+  { name: '[店舗] セブンの向かい', address: '大阪府枚方市出口4丁目36-5', memo: '9:15頃 子ども連れのお母さんがおしゃべり' },
+  { name: '[バス停] パークオアシス', address: '大阪府枚方市出口1丁目17-1', memo: '9:10頃 幼稚園バス送り' },
+  { name: '[住宅地] 香里ケ丘ウエストヒルズ付近', address: '大阪府枚方市東中振1丁目34-3', memo: '周辺に新しい住宅地もある' },
+  { name: '[住宅地] 子どもがたくさんいそうな住宅地', address: '大阪府枚方市翠香園町24', memo: '子どもがたくさんいそう' },
+  { name: '[公園] 南中振公園', address: '大阪府枚方市南中振2丁目76-1', memo: '' },
+  { name: '[個人宅] ○○さま（翠香園町）', address: '大阪府枚方市翠香園町18-1', memo: '周辺にある一軒家。おこさまがいる' },
+  { name: '[バス停] 送迎後のママたち（南中振）', address: '大阪府枚方市南中振2丁目84-3', memo: '送迎後のママたち' },
+  { name: '[公園] 翠香園ふれあい公園', address: '大阪府枚方市翠香園町8-5', memo: '' },
+  { name: '[住宅地] ルネヒューマンズガーデン枚方', address: '大阪府枚方市出口1丁目2-16', memo: '南西に幼稚園送り後のママいる' },
+  { name: '[バス停] ひらかたパーク', address: '大阪府枚方市枚方公園町1-1', memo: '送迎前後、バス停に人だまり。朝8:27、帰り2:45、みどりバス' },
+  { name: '[バス停] 伊加賀西町北公園', address: '大阪府枚方市伊加賀西町56', memo: '送迎前後、朝8:44、帰り2:56、赤バス。周辺に新しい家有' },
+  { name: '[バス停] 出口ふれあい公園', address: '大阪府枚方市出口2丁目1-18', memo: '送迎前後、朝8:55、帰り3:07、赤バス' },
+  { name: '[個人宅] ○○さま（伊加賀栄町）', address: '大阪府枚方市伊加賀栄町17-17-2', memo: '半年ほど前にできた新しい家。1-2歳の子どもがいる' },
+  { name: '[住宅地] 伊加賀栄町23のブロック', address: '大阪府枚方市伊加賀栄町23', memo: '新しいおうちが多く、子どもがいっぱい' },
+  { name: '[公園] 伊加賀栄公園', address: '大阪府枚方市伊加賀栄町9', memo: 'アプロの前' },
+  { name: '[店舗] コノミヤ 枚方店', address: '大阪府枚方市伊加賀緑町1-15', memo: '月曜日10%オフ' },
 ];
 
-// ━━━ Category Config ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-const CAT_CONFIG = {
-  "公園":   { color: "#16a34a", bg: "#dcfce7", icon: "🌳" },
-  "施設":   { color: "#2563eb", bg: "#dbeafe", icon: "🏛️" },
-  "店舗":   { color: "#ea580c", bg: "#ffedd5", icon: "🛒" },
-  "住宅地": { color: "#7c3aed", bg: "#ede9fe", icon: "🏘️" },
-  "個人宅": { color: "#db2777", bg: "#fce7f3", icon: "🏠" },
-  "バス停": { color: "#0891b2", bg: "#cffafe", icon: "🚌" },
-};
-const ALL_CATS = Object.keys(CAT_CONFIG);
+// ========== 状態 ==========
+let currentLat = null;
+let currentLng = null;
+let geocodedSpots = [];
+let sortedSpots = [];
+let displayCount = 10;
 
-// ━━━ State ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-let myPos = null;
-let activeCats = new Set(ALL_CATS);
-let showCount = 10;
-let expandedId = null;
-
-// ━━━ Haversine ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+// ========== 距離計算 ==========
 function haversine(lat1, lng1, lat2, lng2) {
   const R = 6371;
   const dLat = (lat2 - lat1) * Math.PI / 180;
   const dLng = (lng2 - lng1) * Math.PI / 180;
-  const a = Math.sin(dLat/2)**2 + Math.cos(lat1*Math.PI/180) * Math.cos(lat2*Math.PI/180) * Math.sin(dLng/2)**2;
+  const a = Math.sin(dLat/2)**2 + Math.cos(lat1*Math.PI/180)*Math.cos(lat2*Math.PI/180)*Math.sin(dLng/2)**2;
   return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
 }
-
 function formatDist(km) {
-  return km < 1 ? Math.round(km * 1000) + 'm' : km.toFixed(1) + 'km';
+  return km < 1 ? `${Math.round(km*1000)}m` : `${km.toFixed(1)}km`;
 }
 
-// ━━━ URL Helpers ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-function spotMapUrl(s) {
-  return `https://www.google.com/maps/search/?api=1&query=${s.lat},${s.lng}`;
-}
-function navUrl(lat, lng, spots) {
-  if (!spots.length) return '#';
-  const dest = spots[spots.length - 1];
-  const wp = spots.slice(0, -1);
-  let url = `https://www.google.com/maps/dir/${lat},${lng}`;
-  wp.forEach(s => url += `/${s.lat},${s.lng}`);
-  url += `/${dest.lat},${dest.lng}`;
-  return url;
-}
-
-// ━━━ Location ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-function getLocation() {
-  if (!navigator.geolocation) {
-    showLocMsg('error', 'この端末では位置情報を利用できません');
-    return;
+// ========== ジオコーディング ==========
+async function geocodeAddress(address) {
+  const url = `https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(address)}&format=json&limit=1`;
+  const res = await fetch(url, { headers: { 'User-Agent': 'spot-map/1.0' } });
+  const data = await res.json();
+  if (data && data.length > 0) {
+    return { lat: parseFloat(data[0].lat), lng: parseFloat(data[0].lon) };
   }
-  const btn = document.getElementById('locBtn');
-  const txt = document.getElementById('locBtnText');
+  return null;
+}
+
+// ========== メイン処理 ==========
+async function start() {
+  const btn = document.getElementById('startBtn');
   btn.disabled = true;
-  txt.textContent = '取得中...';
-  btn.querySelector('.icon').outerHTML = '<span class="spinner">⟳</span>';
+  btn.textContent = '処理中...';
+  clearError();
 
-  navigator.geolocation.getCurrentPosition(
-    pos => {
-      myPos = { lat: pos.coords.latitude, lng: pos.coords.longitude };
-      btn.disabled = false;
-      btn.innerHTML = '<span class="icon">📡</span><span>現在地を更新</span>';
-      showLocMsg('ok', `✓ 現在地を取得しました（${myPos.lat.toFixed(4)}, ${myPos.lng.toFixed(4)}）`);
-      render();
-    },
-    err => {
-      btn.disabled = false;
-      btn.innerHTML = '<span class="icon">📡</span><span id="locBtnText">現在地を取得して近い順に並べる</span>';
-      showLocMsg('error', err.code === 1 ? '位置情報の許可が必要です' : '位置情報を取得できませんでした');
-    },
-    { enableHighAccuracy: true, timeout: 10000 }
-  );
-}
-
-function showLocMsg(type, text) {
-  const el = document.getElementById('locMsg');
-  el.innerHTML = `<div class="msg-${type === 'error' ? 'error' : 'ok'}">${text}</div>`;
-}
-
-// ━━━ Filter ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-function toggleCat(cat) {
-  if (activeCats.has(cat)) {
-    if (activeCats.size === 1) return;
-    activeCats.delete(cat);
-  } else {
-    activeCats.add(cat);
-  }
-  render();
-}
-
-function selectAllCats() {
-  activeCats = new Set(ALL_CATS);
-  render();
-}
-
-function onSliderChange(val) {
-  showCount = Number(val);
-  document.getElementById('sliderValue').textContent = showCount + '件';
-  render();
-}
-
-// ━━━ Render ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-function renderFilters() {
-  const row = document.getElementById('filterRow');
-  let html = `<button class="cat-chip ${activeCats.size === ALL_CATS.length ? 'all-active' : ''}" onclick="selectAllCats()">すべて</button>`;
-  ALL_CATS.forEach(cat => {
-    const cfg = CAT_CONFIG[cat];
-    const active = activeCats.has(cat);
-    html += `<button class="cat-chip ${active ? 'active' : ''}" 
-      style="--cat-color:${cfg.color}; --cat-bg:${cfg.bg}; --cat-color-40:${cfg.color}40"
-      onclick="toggleCat('${cat}')">${cfg.icon} ${cat}</button>`;
-  });
-  row.innerHTML = html;
-}
-
-function render() {
-  renderFilters();
-
-  // Process spots
-  let spots = SPOTS.filter(s => activeCats.has(s.cat)).map(s => ({
-    ...s,
-    dist: myPos ? haversine(myPos.lat, myPos.lng, s.lat, s.lng) : null
-  }));
-  if (myPos) spots.sort((a, b) => a.dist - b.dist);
-
-  const displayed = spots.slice(0, showCount);
-  const navSpots = displayed.slice(0, 10);
-
-  // Badge
-  document.getElementById('countBadge').textContent = spots.length + '件';
-
-  // Nav section
-  const navSection = document.getElementById('navSection');
-  if (myPos && displayed.length > 0) {
-    navSection.classList.remove('hidden');
-    document.getElementById('navBtn').href = navUrl(myPos.lat, myPos.lng, navSpots);
-    document.getElementById('navBtnText').textContent = `Googleマップでナビ開始（上位${navSpots.length}件）`;
-    document.getElementById('navNote').classList.toggle('hidden', displayed.length <= 10);
-  } else {
-    navSection.classList.add('hidden');
-  }
-
-  // Spot list
-  const list = document.getElementById('spotList');
-  const empty = document.getElementById('emptyState');
-
-  if (displayed.length === 0) {
-    list.innerHTML = '';
-    empty.classList.remove('hidden');
+  // Step1: 現在地取得
+  updateGeoStatus('⏳', '現在地を取得中...', 'ブラウザの許可ダイアログを確認してください');
+  try {
+    const pos = await new Promise((resolve, reject) => {
+      navigator.geolocation.getCurrentPosition(resolve, reject, { timeout: 10000 });
+    });
+    currentLat = pos.coords.latitude;
+    currentLng = pos.coords.longitude;
+    updateGeoStatus('✅', '現在地を取得しました', `緯度 ${currentLat.toFixed(4)} / 経度 ${currentLng.toFixed(4)}`);
+  } catch (e) {
+    updateGeoStatus('❌', '現在地の取得に失敗しました', '位置情報の許可を確認してください');
+    showError('位置情報を取得できませんでした。ブラウザの設定で位置情報を許可してください。');
+    btn.disabled = false;
+    btn.textContent = '📍 現在地を取得して近い順に並べる';
     return;
   }
-  empty.classList.add('hidden');
 
-  list.innerHTML = displayed.map((spot, idx) => {
-    const cfg = CAT_CONFIG[spot.cat];
-    const expanded = expandedId === spot.id;
-    return `
-      <div class="card" style="--cat-color:${cfg.color}; animation-delay:${idx * 0.03}s">
-        <div class="card-main" onclick="toggleExpand(${spot.id})">
-          <div class="card-left">
-            ${myPos ? `<div class="rank"><span class="rank-num">${idx + 1}</span></div>` : ''}
-            <div class="card-info">
-              <div class="card-header">
-                <span class="cat-tag" style="--cat-bg:${cfg.bg}; --cat-color:${cfg.color}">${cfg.icon} ${spot.cat}</span>
-                ${spot.dist !== null ? `<span class="dist">${formatDist(spot.dist)}</span>` : ''}
-              </div>
-              <div class="spot-name">${spot.name}</div>
-              <div class="memo">${spot.memo}</div>
-            </div>
+  // Step2: ジオコーディング（未取得のみ）
+  if (geocodedSpots.length === 0) {
+    showLoading('住所から位置情報を取得中... (31件)');
+    const results = [];
+    for (let i = 0; i < RAW_SPOTS.length; i++) {
+      const s = RAW_SPOTS[i];
+      showLoading(`住所から位置情報を取得中... (${i+1}/31件)`);
+      try {
+        const geo = await geocodeAddress(s.address);
+        results.push({ ...s, lat: geo?.lat || null, lng: geo?.lng || null });
+      } catch {
+        results.push({ ...s, lat: null, lng: null });
+      }
+      await new Promise(r => setTimeout(r, 300)); // レート制限対策
+    }
+    geocodedSpots = results.filter(s => s.lat && s.lng);
+    const failed = results.length - geocodedSpots.length;
+    updateDataStatus('✅', `位置取得完了：${geocodedSpots.length}件`, failed > 0 ? `${failed}件は住所が見つかりませんでした` : '全件取得成功');
+  }
+
+  // Step3: 距離計算＆ソート
+  sortedSpots = geocodedSpots.map(s => ({
+    ...s,
+    dist: haversine(currentLat, currentLng, s.lat, s.lng)
+  })).sort((a, b) => a.dist - b.dist);
+
+  // Step4: 表示
+  document.getElementById('filterRow').style.display = 'flex';
+  document.getElementById('navBtn').style.display = 'block';
+  document.getElementById('navNote').style.display = 'block';
+  renderList();
+
+  btn.textContent = '🔄 現在地を更新して再計算';
+  btn.disabled = false;
+}
+
+function renderList() {
+  const area = document.getElementById('spotListArea');
+  const count = parseInt(document.getElementById('countSlider').value);
+  displayCount = count;
+
+  if (sortedSpots.length === 0) {
+    area.innerHTML = '<div class="loading"><div class="spinner"></div><p>データがありません</p></div>';
+    return;
+  }
+
+  const shown = sortedSpots.slice(0, count);
+  area.innerHTML = `
+    <div class="section-title">
+      近い順リスト <span class="badge">${count}件表示</span>
+    </div>
+    <div class="spot-list">
+      ${shown.map((s, i) => `
+        <div class="spot-item" onclick="openSpotMap('${s.lat}','${s.lng}')">
+          <div class="spot-rank">${i+1}</div>
+          <div class="spot-info">
+            <div class="spot-name">${s.name.replace(/^\[.+?\]\s?/, '')}</div>
+            <div class="spot-cat">${s.name.match(/^\[(.+?)\]/)?.[1] || ''}</div>
+            ${s.memo ? `<div class="spot-memo">${s.memo}</div>` : ''}
+            <div class="spot-dist">📏 直線 ${formatDist(s.dist)}</div>
           </div>
-          <div class="chevron">${expanded ? '▲' : '▼'}</div>
         </div>
-        ${expanded ? `
-          <div class="card-expanded">
-            <div class="address">📮 ${spot.address}</div>
-            <div class="card-actions">
-              <a class="action-btn green" href="${spotMapUrl(spot)}" target="_blank" rel="noopener noreferrer">
-                📍 マップで見る
-              </a>
-              ${myPos ? `<a class="action-btn blue" href="${navUrl(myPos.lat, myPos.lng, [spot])}" target="_blank" rel="noopener noreferrer">
-                🧭 ナビ開始
-              </a>` : ''}
-            </div>
-          </div>
-        ` : ''}
-      </div>`;
-  }).join('');
+      `).join('')}
+    </div>
+  `;
+
+  document.getElementById('navBtn').disabled = false;
+  document.getElementById('navBtn').textContent = `🗺 Googleマップでナビ開始（上位${Math.min(count,10)}件）`;
 }
 
-function toggleExpand(id) {
-  expandedId = expandedId === id ? null : id;
-  render();
+function updateCount() {
+  const val = document.getElementById('countSlider').value;
+  document.getElementById('countVal').textContent = val;
+  renderList();
 }
 
-// ━━━ Init ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-render();
+function openSpotMap(lat, lng) {
+  window.open(`https://www.google.com/maps?q=${lat},${lng}`, '_blank');
+}
+
+function openMaps() {
+  if (!currentLat || sortedSpots.length === 0) return;
+  const targets = sortedSpots.slice(0, Math.min(displayCount, 10));
+  const origin = `${currentLat},${currentLng}`;
+  const dest = targets[targets.length - 1];
+  const waypoints = targets.slice(0, -1).map(s => `${s.lat},${s.lng}`).join('|');
+  let url = `https://www.google.com/maps/dir/?api=1&origin=${origin}&destination=${dest.lat},${dest.lng}&travelmode=driving`;
+  if (waypoints) url += `&waypoints=${waypoints}`;
+  window.open(url, '_blank');
+}
+
+// ========== UI ヘルパー ==========
+function updateGeoStatus(icon, title, desc) {
+  document.getElementById('geoStatus').innerHTML = `
+    <div class="status-icon">${icon}</div>
+    <div class="status-text">
+      <div class="title">${title}</div>
+      <div class="desc">${desc}</div>
+    </div>`;
+}
+function updateDataStatus(icon, title, desc) {
+  document.getElementById('dataStatus').innerHTML = `
+    <div class="status-icon">${icon}</div>
+    <div class="status-text">
+      <div class="title">${title}</div>
+      <div class="desc">${desc}</div>
+    </div>`;
+}
+function showLoading(msg) {
+  document.getElementById('spotListArea').innerHTML = `
+    <div class="loading">
+      <div class="spinner"></div>
+      <p>${msg}</p>
+    </div>`;
+}
+function showError(msg) {
+  document.getElementById('errorBox').innerHTML = `<div class="error">⚠️ ${msg}</div>`;
+}
+function clearError() {
+  document.getElementById('errorBox').innerHTML = '';
+}
 </script>
 </body>
 </html>
